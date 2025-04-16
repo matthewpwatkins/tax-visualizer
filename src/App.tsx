@@ -3,6 +3,9 @@ import './App.css';
 import TaxForm from './components/TaxForm';
 import TaxResultsTable from './components/TaxResultsTable';
 import { calculateTax, TaxConfig } from './utils/taxUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { faGlobe } from '@fortawesome/free-solid-svg-icons';
 
 function App() {
   const [taxResults, setTaxResults] = useState<{
@@ -51,41 +54,61 @@ function App() {
   };
 
   return (
-    <div className="container mt-5 mb-5">
-      <div className="row">
-        <div className="col-12 text-center mb-4">
-          <h1 className="display-4 fw-bold text-primary">Tax Visualizer</h1>
-          <p className="lead">See how your income tax is calculated across different brackets</p>
+    <div>
+      <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div className="container">
+          <span className="navbar-brand">Tax Visualizer</span>
+          <div className="navbar-nav ms-auto">
+            <a href="https://github.com/matthewpwatkins/tax-visualizer" 
+               className="nav-link text-white" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               aria-label="GitHub Repository">
+              <FontAwesomeIcon icon={faGithub} /> GitHub
+            </a>
+            <a href="https://watkins.dev" 
+               className="nav-link text-white" 
+               target="_blank" 
+               rel="noopener noreferrer" 
+               aria-label="Developer's Website">
+              <FontAwesomeIcon icon={faGlobe} /> watkins.dev
+            </a>
+          </div>
         </div>
-      </div>
-      
-      <div className="row">
-        <div className="col-lg-12">
-          <TaxForm 
-            onSubmit={handleConfigSubmit} 
-            initialConfig={initialConfig}
-          />
+      </nav>
+
+      <div className="container mt-5 mb-5">
+        <div className="row">
+          <div className="col-12 text-center mb-4">
+            <h1 className="display-4 fw-bold text-primary">Tax Visualizer</h1>
+            <p className="lead">See how your income tax is calculated across different brackets</p>
+          </div>
         </div>
-      </div>
-      
-      {taxResults && (
-        <div className="row mt-4">
+        
+        <div className="row">
           <div className="col-lg-12">
-            <TaxResultsTable 
-              bracketCalculations={taxResults.bracketCalculations}
-              taxableIncome={taxResults.taxableIncome}
-              totalTax={taxResults.totalTax}
-              taxAfterCredits={taxResults.taxAfterCredits}
-              effectiveRate={taxResults.effectiveRate}
-              credits={taxResults.credits}
+            <TaxForm 
+              onSubmit={handleConfigSubmit} 
+              initialConfig={initialConfig}
             />
           </div>
         </div>
-      )}
-      
-      <footer className="mt-5 pt-3 text-center text-muted border-top">
-        <small>Tax Visualizer &copy; {new Date().getFullYear()}</small>
-      </footer>
+        
+        {taxResults && (
+          <div className="row mt-4">
+            <div className="col-lg-12">
+              <TaxResultsTable 
+                bracketCalculations={taxResults.bracketCalculations}
+                taxableIncome={taxResults.taxableIncome}
+                totalTax={taxResults.totalTax}
+                taxAfterCredits={taxResults.taxAfterCredits}
+                effectiveRate={taxResults.effectiveRate}
+                credits={taxResults.credits}
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

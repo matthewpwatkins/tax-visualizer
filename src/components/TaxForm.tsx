@@ -4,10 +4,11 @@ import {
   FilingStatusEnum, 
   getStandardDeduction, 
   AVAILABLE_TAX_YEARS,
-  DEFAULT_TAX_YEAR,
   TaxConfig
 } from '../utils/taxUtils';
 import { NumericFormat } from 'react-number-format';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalculator } from '@fortawesome/free-solid-svg-icons';
 
 interface TaxFormProps {
   onSubmit: (config: TaxConfig) => void;
@@ -168,7 +169,7 @@ const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig }) => {
           </div>
 
           <button type="submit" className="btn btn-primary">
-            Calculate Tax
+            <FontAwesomeIcon icon={faCalculator} /> Calculate Tax
           </button>
         </form>
       </div>

@@ -1,5 +1,7 @@
 import React from 'react';
 import { BracketCalculation, formatCurrency, formatPercent, DISPLAY_CONSTANTS } from '../utils/taxUtils';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPercentage, faDollarSign, faChartPie, faInfoCircle, faTag, faMoneyBillWave, faInfinity } from '@fortawesome/free-solid-svg-icons';
 
 interface TaxResultsTableProps {
   bracketCalculations: BracketCalculation[];
@@ -41,19 +43,19 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
     <div className="card">
       {/* Tax Bracket Breakdown */}
       <div className="card-header bg-success text-white">
-        <h5 className="mb-0">Tax Breakdown by Bracket</h5>
+        <h5 className="mb-0"><FontAwesomeIcon icon={faChartPie} className="me-2" /> Tax Breakdown by Bracket</h5>
       </div>
       <div className="card-body">
         <div className="table-responsive">
           <table className="table table-striped table-hover">
             <thead className="table-dark">
               <tr>
-                <th>Tax Bracket</th>
-                <th>Rate</th>
-                <th style={{ width: '220px' }}>Bracket Fill</th>
-                <th>Income in Bracket</th>
-                <th>Tax in Bracket</th>
-                <th>Remaining in Bracket</th>
+                <th><FontAwesomeIcon icon={faTag} className="me-1" /> Tax Bracket</th>
+                <th><FontAwesomeIcon icon={faPercentage} className="me-1" /> Rate</th>
+                <th style={{ width: '220px' }}><FontAwesomeIcon icon={faInfoCircle} className="me-1" /> Bracket Fill</th>
+                <th><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Income in Bracket</th>
+                <th><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Tax in Bracket</th>
+                <th><FontAwesomeIcon icon={faMoneyBillWave} className="me-1" /> Remaining in Bracket</th>
               </tr>
             </thead>
             <tbody>
@@ -98,7 +100,7 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
                       ) : bracket.max !== null && remainingInBracket > 0 ? (
                         formatCurrency(remainingInBracket) + DISPLAY_CONSTANTS.LEFT_TEXT
                       ) : (
-                        <span style={{ fontSize: '1.25rem' }}>∞</span>
+                        <span style={{ fontSize: '1.25rem' }}><FontAwesomeIcon icon={faInfinity} /></span>
                       )}
                     </td>
                   </tr>
@@ -116,25 +118,25 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
       <div className="card-body">
         <div className="px-2 py-2">
           <div className="d-flex justify-content-between border-bottom py-2">
-            <div className="fw-bold">Taxable Income:</div>
+            <div className="fw-bold"><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Taxable Income:</div>
             <div className="fw-bold text-success">{formatCurrency(taxableIncome)}</div>
           </div>
           <div className="d-flex justify-content-between border-bottom py-2">
-            <div className="fw-bold">Total Tax:</div>
+            <div className="fw-bold"><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Total Tax:</div>
             <div className="fw-bold text-danger">{formatCurrency(totalTax)}</div>
           </div>
           {credits > 0 && (
             <div className="d-flex justify-content-between border-bottom py-2">
-              <div className="fw-bold">Tax Credits:</div>
+              <div className="fw-bold"><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Tax Credits:</div>
               <div className="fw-bold text-success">-{formatCurrency(credits)}</div>
             </div>
           )}
           <div className="d-flex justify-content-between border-bottom py-2">
-            <div className="fw-bold">Final Tax Amount:</div>
+            <div className="fw-bold"><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Final Tax Amount:</div>
             <div className="fw-bold">{formatCurrency(taxAfterCredits)}</div>
           </div>
           <div className="d-flex justify-content-between py-2">
-            <div className="fw-bold">Effective Tax Rate:</div>
+            <div className="fw-bold"><FontAwesomeIcon icon={faPercentage} className="me-1" /> Effective Tax Rate:</div>
             <div className="fw-bold">{formatPercent(effectiveRate)}</div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   FilingStatus, 
   FilingStatusEnum, 
@@ -25,6 +25,14 @@ const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig }) => {
     getStandardDeduction(config.filingStatus, config.year)
   );
 
+  // Helper function to update config while preserving class instance
+  const updateConfig = useCallback((updates: Partial<TaxConfig>) => {
+    setConfig(new TaxConfig({
+      ...config,
+      ...updates
+    }));
+  }, [config]);
+
   // Update standard deduction when filing status or year changes
   useEffect(() => {
     const newStandardDeduction = getStandardDeduction(config.filingStatus, config.year);
@@ -34,15 +42,7 @@ const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig }) => {
     if (config.deductions < newStandardDeduction) {
       updateConfig({ deductions: newStandardDeduction });
     }
-  }, [config.filingStatus, config.year]);
-
-  // Helper function to update config while preserving class instance
-  const updateConfig = (updates: Partial<TaxConfig>) => {
-    setConfig(new TaxConfig({
-      ...config,
-      ...updates
-    }));
-  };
+  }, [config.filingStatus, config.year, config.deductions, updateConfig]);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;

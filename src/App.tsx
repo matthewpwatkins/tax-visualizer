@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import './App.css';
 import TaxForm from './components/TaxForm';
 import TaxResultsTable from './components/TaxResultsTable';
@@ -13,6 +13,9 @@ function App() {
   // Use custom hooks for URL parameters and tax calculations
   const { initialConfig, urlChecked, updateUrlWithConfig } = useTaxParams();
   const { taxResults, calculateTaxes } = useTaxCalculation();
+  
+  // Reference for tax results section
+  const taxResultsRef = useRef<HTMLDivElement>(null);
 
   // Calculate taxes when initialConfig is available
   useEffect(() => {
@@ -20,6 +23,18 @@ function App() {
       calculateTaxes(initialConfig);
     }
   }, [initialConfig, calculateTaxes]);
+  
+  // Scroll to tax results when they become available
+  useEffect(() => {
+    if (taxResults && taxResultsRef.current) {
+      setTimeout(() => {
+        taxResultsRef.current?.scrollIntoView({ 
+          behavior: 'smooth',
+          block: 'start'
+        });
+      }, 100); // Small delay to ensure DOM is updated
+    }
+  }, [taxResults]);
 
   // Handler for form submission
   const handleConfigSubmit = (config: TaxCalculationRequest) => {
@@ -89,7 +104,7 @@ function App() {
         </div>
         
         {taxResults && (
-          <div className="row mt-3 mt-md-4">
+          <div ref={taxResultsRef} className="row mt-3 mt-md-4" id="tax-results">
             <div className="col-12">
               <TaxResultsTable 
                 bracketCalculations={taxResults.bracketCalculations}

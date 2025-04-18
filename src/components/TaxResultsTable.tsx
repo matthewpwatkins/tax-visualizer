@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { formatCurrency, formatPercent } from '../utils/tax-utils';
 import { BracketCalculation } from "../model/bracket-calculation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,8 +21,21 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
   effectiveRate,
   credits
 }) => {
-  // Track expanded state for mobile accordion view
+  // Initialize expanded rows state - expand brackets that have income by default
+  const initializeExpandedRows = () => {
+    const initialState: {[key: number]: boolean} = {};
+    bracketCalculations.forEach((bracket, index) => {
+      initialState[index] = bracket.incomeInBracket > 0;
+    });
+    return initialState;
+  };
+  
   const [expandedRows, setExpandedRows] = useState<{[key: number]: boolean}>({});
+  
+  // Update expanded rows when bracket calculations change
+  useEffect(() => {
+    setExpandedRows(initializeExpandedRows());
+  }, [bracketCalculations]);
   
   // Toggle expanded state
   const toggleRow = (index: number) => {
@@ -72,6 +85,11 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
         >
           <div>
             <span className="fw-bold">{formatPercent(bracket.rate)} Tax Rate</span>
+            {isInBracket && (
+              <span className="ms-2 badge bg-success">
+                {formatCurrency(bracket.incomeInBracket)}
+              </span>
+            )}
           </div>
           <div>
             <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />

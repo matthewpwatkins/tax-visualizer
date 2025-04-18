@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import { formatCurrency, formatPercent, formatPercentPrecise } from '../utils/tax-utils';
 import { BracketCalculation } from "../model/bracket-calculation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPercentage, faDollarSign, faChartPie, faInfoCircle, faTag, faMoneyBillWave, faInfinity, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
+import { faPercentage, faDollarSign, faChartPie, faInfoCircle, faTag, faMoneyBillWave, faInfinity } from '@fortawesome/free-solid-svg-icons';
 
 interface TaxResultsTableProps {
   bracketCalculations: BracketCalculation[];
@@ -21,30 +21,6 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
   effectiveRate,
   credits
 }) => {
-  // Initialize expanded rows state - expand brackets that have income by default
-  const initializeExpandedRows = useCallback(() => {
-    const initialState: {[key: number]: boolean} = {};
-    bracketCalculations.forEach((bracket, index) => {
-      initialState[index] = bracket.incomeInBracket > 0;
-    });
-    return initialState;
-  }, [bracketCalculations]);
-  
-  const [expandedRows, setExpandedRows] = useState<{[key: number]: boolean}>({});
-  
-  // Update expanded rows when bracket calculations change
-  useEffect(() => {
-    setExpandedRows(initializeExpandedRows());
-  }, [initializeExpandedRows]);
-  
-  // Toggle expanded state
-  const toggleRow = (index: number) => {
-    setExpandedRows(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
-  };
-  
   // Calculate bracket fill percentage and remaining amount
   const getBracketVisualization = (bracket: BracketCalculation) => {
     // For the highest bracket with undefined max, we'll use a fixed amount above min for visualization
@@ -66,101 +42,89 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
     return { fillPercentage, taxFillPercentage, remainingInBracket };
   };
 
-  // Mobile card view for each bracket
+  // Mobile card view for each bracket - now always showing all details
   const renderMobileBracketCard = (bracket: BracketCalculation, index: number) => {
     const { fillPercentage, taxFillPercentage, remainingInBracket } = getBracketVisualization(bracket);
     const isLastBracket = index === bracketCalculations.length - 1;
     const isInBracket = bracket.incomeInBracket > 0;
-    const isExpanded = expandedRows[index] || false;
 
     return (
       <div className="card mb-2" key={index}>
-        <div 
-          className="card-header d-flex justify-content-between align-items-center" 
-          onClick={() => toggleRow(index)}
-          style={{ cursor: 'pointer' }}
-        >
-          <div>
-            <span className="fw-bold">{formatPercent(bracket.rate)} Tax Rate</span>
-            {isInBracket && (
-              <span className="ms-2 badge bg-success">
-                {formatCurrency(bracket.incomeInBracket)}
-              </span>
-            )}
-          </div>
-          <div>
-            <FontAwesomeIcon icon={isExpanded ? faChevronUp : faChevronDown} />
-          </div>
+        <div className="card-header">
+          <span className="fw-bold">{formatPercent(bracket.rate)} Tax Rate</span>
+          {isInBracket && (
+            <span className="ms-2 badge bg-success">
+              {formatCurrency(bracket.incomeInBracket)}
+            </span>
+          )}
         </div>
         
-        {isExpanded && (
-          <div className="card-body">
-            <div className="d-flex justify-content-between mb-2">
-              <div><FontAwesomeIcon icon={faTag} className="me-1" /> Bracket Range:</div>
-              <div>
-                {formatCurrency(bracket.min)} - {bracket.max !== undefined ? formatCurrency(bracket.max) : <FontAwesomeIcon icon={faInfinity} />}
-              </div>
-            </div>
-            
-            <div className="mb-3">
-              <div className="d-flex justify-content-between align-items-center mb-1">
-                <div><FontAwesomeIcon icon={faInfoCircle} className="me-1" /> Bracket Fill:</div>
-                <div>{Math.round(fillPercentage)}%</div>
-              </div>
-              {!isLastBracket && (
-                <div className="progress" style={{ height: DISPLAY_CONSTANTS.MIN_PROGRESS_BAR_HEIGHT_MOBILE }}>
-                  {isInBracket && (
-                    <>
-                      <div 
-                        className="progress-bar bg-success" 
-                        role="progressbar" 
-                        style={{ width: `${fillPercentage - taxFillPercentage}%` }}
-                        aria-valuenow={fillPercentage - taxFillPercentage}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                      ></div>
-                      <div 
-                        className="progress-bar bg-danger" 
-                        role="progressbar" 
-                        style={{ width: `${taxFillPercentage}%` }}
-                        aria-valuenow={taxFillPercentage}
-                        aria-valuemin={0}
-                        aria-valuemax={100}
-                      ></div>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            <div className="d-flex justify-content-between mb-2">
-              <div><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Income in Bracket:</div>
-              <div>{formatCurrency(bracket.incomeInBracket)}</div>
-            </div>
-            
-            <div className="d-flex justify-content-between mb-2">
-              <div><FontAwesomeIcon icon={faMoneyBillWave} className="me-1" /> Remaining:</div>
-              <div>
-                {!isInBracket ? (
-                  <span className="text-muted">—</span>
-                ) : fillPercentage === 100 && bracket.max !== undefined ? (
-                  <span className="text-success fw-bold">{DISPLAY_CONSTANTS.FULL_TEXT}</span>
-                ) : bracket.max !== undefined && remainingInBracket > 0 ? (
-                  formatCurrency(remainingInBracket) + DISPLAY_CONSTANTS.LEFT_TEXT
-                ) : (
-                  <span><FontAwesomeIcon icon={faInfinity} /></span>
-                )}
-              </div>
-            </div>
-            
-            <div className="d-flex justify-content-between">
-              <div><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Tax in Bracket:</div>
-              <div className={bracket.taxForBracket > 0 ? "text-danger" : ""}>
-                {formatCurrency(bracket.taxForBracket)}
-              </div>
+        <div className="card-body">
+          <div className="d-flex justify-content-between mb-2">
+            <div><FontAwesomeIcon icon={faTag} className="me-1" /> Bracket Range:</div>
+            <div>
+              {formatCurrency(bracket.min)} - {bracket.max !== undefined ? formatCurrency(bracket.max) : <FontAwesomeIcon icon={faInfinity} />}
             </div>
           </div>
-        )}
+          
+          <div className="mb-3">
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <div><FontAwesomeIcon icon={faInfoCircle} className="me-1" /> Bracket Fill:</div>
+              <div>{Math.round(fillPercentage)}%</div>
+            </div>
+            {!isLastBracket && (
+              <div className="progress" style={{ height: DISPLAY_CONSTANTS.MIN_PROGRESS_BAR_HEIGHT_MOBILE }}>
+                {isInBracket && (
+                  <>
+                    <div 
+                      className="progress-bar bg-success" 
+                      role="progressbar" 
+                      style={{ width: `${fillPercentage - taxFillPercentage}%` }}
+                      aria-valuenow={fillPercentage - taxFillPercentage}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                    ></div>
+                    <div 
+                      className="progress-bar bg-danger" 
+                      role="progressbar" 
+                      style={{ width: `${taxFillPercentage}%` }}
+                      aria-valuenow={taxFillPercentage}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                    ></div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <div className="d-flex justify-content-between mb-2">
+            <div><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Income in Bracket:</div>
+            <div>{formatCurrency(bracket.incomeInBracket)}</div>
+          </div>
+          
+          <div className="d-flex justify-content-between mb-2">
+            <div><FontAwesomeIcon icon={faMoneyBillWave} className="me-1" /> Remaining:</div>
+            <div>
+              {!isInBracket ? (
+                <span className="text-muted">—</span>
+              ) : fillPercentage === 100 && bracket.max !== undefined ? (
+                <span className="text-success fw-bold">{DISPLAY_CONSTANTS.FULL_TEXT}</span>
+              ) : bracket.max !== undefined && remainingInBracket > 0 ? (
+                formatCurrency(remainingInBracket) + DISPLAY_CONSTANTS.LEFT_TEXT
+              ) : (
+                <span><FontAwesomeIcon icon={faInfinity} /></span>
+              )}
+            </div>
+          </div>
+          
+          <div className="d-flex justify-content-between">
+            <div><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Tax in Bracket:</div>
+            <div className={bracket.taxForBracket > 0 ? "text-danger" : ""}>
+              {formatCurrency(bracket.taxForBracket)}
+            </div>
+          </div>
+        </div>
       </div>
     );
   };
@@ -298,6 +262,7 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
 };
 
 export default TaxResultsTable;
+
 // Tax bracket display constants
 
 export const DISPLAY_CONSTANTS = {

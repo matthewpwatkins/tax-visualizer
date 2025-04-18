@@ -8,7 +8,7 @@ import {
 } from "../constants/tax-constants";
 import { NumericFormat } from 'react-number-format';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalculator, faDollarSign } from '@fortawesome/free-solid-svg-icons';
+import { faCalculator, faDollarSign, faCalendar, faUserFriends, faReceipt, faPiggyBank } from '@fortawesome/free-solid-svg-icons';
 import { TaxCalculationRequest } from '../model/tax-calculation-request';
 
 interface TaxFormProps {
@@ -94,133 +94,138 @@ const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig, urlChecked }
   return (
     <div className="card mb-4">
       <div className="card-header bg-primary text-white">
-        <h5 className="mb-0">Enter Your Tax Information</h5>
+        <h5 className="mb-0"><FontAwesomeIcon icon={faCalculator} className="me-2" /> Tax Calculator</h5>
       </div>
       <div className="card-body">
         <form onSubmit={handleSubmit}>
-          <div className="row mb-3">
-            <div className="col-md-6">
-              <label htmlFor="income" className="form-label">Annual Income</label>
-              <div className="input-group">
-                <span className="input-group-text">
-                  <FontAwesomeIcon icon={faDollarSign} />
-                </span>
-                <NumericFormat
-                  className="form-control"
-                  id="income"
-                  name="income"
-                  value={config.income}
-                  onValueChange={(values) => {
-                    setConfig({
-                      ...config,
-                      income: values.floatValue || 0
-                    });
-                  }}
-                  thousandSeparator=","
-                  decimalScale={2}
-                  allowNegative={false}
-                  placeholder="Enter income"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="col-md-6">
-              <label htmlFor="filingStatus" className="form-label">Filing Status</label>
-              <select
-                className="form-select"
-                id="filingStatus"
-                name="filingStatus"
-                value={config.filingStatus}
-                onChange={handleChange}
+          {/* Income */}
+          <div className="mb-3">
+            <label htmlFor="income" className="form-label">
+              <FontAwesomeIcon icon={faDollarSign} className="me-1" /> Annual Income
+            </label>
+            <div className="input-group">
+              <span className="input-group-text">$</span>
+              <NumericFormat
+                className="form-control"
+                id="income"
+                name="income"
+                value={config.income}
+                onValueChange={(values) => {
+                  setConfig({
+                    ...config,
+                    income: values.floatValue || 0
+                  });
+                }}
+                thousandSeparator=","
+                decimalScale={2}
+                allowNegative={false}
+                placeholder="Enter income"
                 required
-              >
-                <option value={FilingStatus.SINGLE}>Single</option>
-                <option value={FilingStatus.MARRIED_JOINT}>Married Filing Jointly</option>
-                <option value={FilingStatus.MARRIED_SEPARATE}>Married Filing Separately</option>
-                <option value={FilingStatus.HEAD_OF_HOUSEHOLD}>Head of Household</option>
-              </select>
+              />
             </div>
           </div>
-
-          <div className="row mb-3">
-            <div className="col-md-6">
-              <label htmlFor="deductions" className="form-label">Deductions</label>
-              <div className="input-group">
-                <span className="input-group-text">
-                  <FontAwesomeIcon icon={faDollarSign} />
-                </span>
-                <NumericFormat
-                  className="form-control"
-                  id="deductions"
-                  name="deductions"
-                  value={Math.max(config.deductions, standardDeduction)}
-                  onValueChange={(values) => {
-                    setConfig({
-                      ...config,
-                      deductions: Math.max(values.floatValue || 0, standardDeduction)
-                    });
-                  }}
-                  thousandSeparator=","
-                  decimalScale={2}
-                  allowNegative={false}
-                  placeholder="Enter deductions"
-                  required
-                />
-              </div>
-              <div className="form-text">
-                Standard deduction for {config.filingStatus.replace(/([A-Z])/g, ' $1').toLowerCase()} in {config.year}: ${standardDeduction.toLocaleString('en-US')}
-              </div>
-            </div>
-            
-            <div className="col-md-6">
-              <label htmlFor="credits" className="form-label">Tax Credits</label>
-              <div className="input-group">
-                <span className="input-group-text">
-                  <FontAwesomeIcon icon={faDollarSign} />
-                </span>
-                <NumericFormat
-                  className="form-control"
-                  id="credits"
-                  name="credits"
-                  value={config.credits}
-                  onValueChange={(values) => {
-                    setConfig({
-                      ...config,
-                      credits: values.floatValue || 0
-                    });
-                  }}
-                  thousandSeparator=","
-                  decimalScale={2}
-                  allowNegative={false}
-                  placeholder="Enter credits"
-                  required
-                />
-              </div>
-            </div>
+          
+          {/* Filing Status */}
+          <div className="mb-3">
+            <label htmlFor="filingStatus" className="form-label">
+              <FontAwesomeIcon icon={faUserFriends} className="me-1" /> Filing Status
+            </label>
+            <select
+              className="form-select"
+              id="filingStatus"
+              name="filingStatus"
+              value={config.filingStatus}
+              onChange={handleChange}
+              required
+            >
+              <option value={FilingStatus.SINGLE}>Single</option>
+              <option value={FilingStatus.MARRIED_JOINT}>Married Filing Jointly</option>
+              <option value={FilingStatus.MARRIED_SEPARATE}>Married Filing Separately</option>
+              <option value={FilingStatus.HEAD_OF_HOUSEHOLD}>Head of Household</option>
+            </select>
           </div>
 
-          <div className="row mb-4">
-            <div className="col-md-6">
-              <label htmlFor="year" className="form-label">Tax Year</label>
-              <select
-                className="form-select"
-                id="year"
-                name="year"
-                value={config.year}
-                onChange={handleChange}
+          {/* Tax Year */}
+          <div className="mb-3">
+            <label htmlFor="year" className="form-label">
+              <FontAwesomeIcon icon={faCalendar} className="me-1" /> Tax Year
+            </label>
+            <select
+              className="form-select"
+              id="year"
+              name="year"
+              value={config.year}
+              onChange={handleChange}
+              required
+            >
+              {AVAILABLE_TAX_YEARS.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Deductions */}
+          <div className="mb-3">
+            <label htmlFor="deductions" className="form-label">
+              <FontAwesomeIcon icon={faReceipt} className="me-1" /> Deductions
+            </label>
+            <div className="input-group">
+              <span className="input-group-text">$</span>
+              <NumericFormat
+                className="form-control"
+                id="deductions"
+                name="deductions"
+                value={Math.max(config.deductions, standardDeduction)}
+                onValueChange={(values) => {
+                  setConfig({
+                    ...config,
+                    deductions: Math.max(values.floatValue || 0, standardDeduction)
+                  });
+                }}
+                thousandSeparator=","
+                decimalScale={2}
+                allowNegative={false}
+                placeholder="Enter deductions"
                 required
-              >
-                {AVAILABLE_TAX_YEARS.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
+              />
+            </div>
+            <div className="form-text small">
+              Standard deduction for {config.filingStatus.replace(/([A-Z])/g, ' $1').toLowerCase()} in {config.year}: ${standardDeduction.toLocaleString('en-US')}
+            </div>
+          </div>
+          
+          {/* Tax Credits */}
+          <div className="mb-4">
+            <label htmlFor="credits" className="form-label">
+              <FontAwesomeIcon icon={faPiggyBank} className="me-1" /> Tax Credits
+            </label>
+            <div className="input-group">
+              <span className="input-group-text">$</span>
+              <NumericFormat
+                className="form-control"
+                id="credits"
+                name="credits"
+                value={config.credits}
+                onValueChange={(values) => {
+                  setConfig({
+                    ...config,
+                    credits: values.floatValue || 0
+                  });
+                }}
+                thousandSeparator=","
+                decimalScale={2}
+                allowNegative={false}
+                placeholder="Enter credits"
+                required
+              />
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary">
-            <FontAwesomeIcon icon={faCalculator} /> Calculate Tax
-          </button>
+          <div className="d-grid">
+            <button type="submit" className="btn btn-primary btn-lg">
+              <FontAwesomeIcon icon={faCalculator} className="me-2" /> Calculate Tax
+            </button>
+          </div>
         </form>
       </div>
     </div>

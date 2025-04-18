@@ -35,7 +35,7 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
   // Update expanded rows when bracket calculations change
   useEffect(() => {
     setExpandedRows(initializeExpandedRows());
-  }, [bracketCalculations]);
+  }, [bracketCalculations, initializeExpandedRows]);
   
   // Toggle expanded state
   const toggleRow = (index: number) => {
@@ -54,9 +54,6 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
     
     // Calculate fill percentage
     const fillPercentage = Math.min(100, (bracket.incomeInBracket / bracketWidth) * 100);
-    
-    // Calculate the tax portion as a percentage of the bracket
-    const taxPercentage = bracket.rate * 100;
     
     // Calculate tax portion of the progress bar (taxable percentage of the filled part)
     const taxFillPercentage = fillPercentage * (bracket.rate);

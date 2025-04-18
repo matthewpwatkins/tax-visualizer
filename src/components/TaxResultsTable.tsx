@@ -32,12 +32,18 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
     // Calculate fill percentage
     const fillPercentage = Math.min(100, (bracket.incomeInBracket / bracketWidth) * 100);
     
+    // Calculate the tax portion as a percentage of the bracket
+    const taxPercentage = bracket.rate * 100;
+    
+    // Calculate tax portion of the progress bar (taxable percentage of the filled part)
+    const taxFillPercentage = fillPercentage * (bracket.rate);
+    
     // Calculate remaining amount in bracket
     const remainingInBracket = bracket.max !== undefined
       ? Math.max(0, bracket.max - bracket.min - bracket.incomeInBracket)
       : 0;
       
-    return { fillPercentage, remainingInBracket };
+    return { fillPercentage, taxFillPercentage, remainingInBracket };
   };
 
   return (
@@ -62,7 +68,7 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
             </thead>
             <tbody>
               {bracketCalculations.map((bracket, index) => {
-                const { fillPercentage, remainingInBracket } = getBracketVisualization(bracket);
+                const { fillPercentage, taxFillPercentage, remainingInBracket } = getBracketVisualization(bracket);
                 const isLastBracket = index === bracketCalculations.length - 1;
                 const isInBracket = bracket.incomeInBracket > 0;
                 
@@ -82,14 +88,26 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
                         </div>
                         {!isLastBracket && (
                           <div className="progress flex-grow-1" style={{ height: DISPLAY_CONSTANTS.MIN_PROGRESS_BAR_HEIGHT }}>
-                            <div 
-                              className="progress-bar bg-success" 
-                              role="progressbar" 
-                              style={{ width: `${fillPercentage}%` }}
-                              aria-valuenow={fillPercentage}
-                              aria-valuemin={0}
-                              aria-valuemax={100}
-                            ></div>
+                            {isInBracket && (
+                              <>
+                                <div 
+                                  className="progress-bar bg-success" 
+                                  role="progressbar" 
+                                  style={{ width: `${fillPercentage - taxFillPercentage}%` }}
+                                  aria-valuenow={fillPercentage - taxFillPercentage}
+                                  aria-valuemin={0}
+                                  aria-valuemax={100}
+                                ></div>
+                                <div 
+                                  className="progress-bar bg-danger" 
+                                  role="progressbar" 
+                                  style={{ width: `${taxFillPercentage}%` }}
+                                  aria-valuenow={taxFillPercentage}
+                                  aria-valuemin={0}
+                                  aria-valuemax={100}
+                                ></div>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>
@@ -106,7 +124,9 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
                         <span style={{ fontSize: '1.25rem' }}><FontAwesomeIcon icon={faInfinity} /></span>
                       )}
                     </td>
-                    <td>{formatCurrency(bracket.taxForBracket)}</td>
+                    <td className={bracket.taxForBracket > 0 ? "text-danger" : ""}>
+                      {formatCurrency(bracket.taxForBracket)}
+                    </td>
                   </tr>
                 );
               })}

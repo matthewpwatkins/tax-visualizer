@@ -139,3 +139,11 @@ export const formatPercent = (rate: number): string => {
     maximumFractionDigits: 0
   }).format(rate);
 };
+
+export const formatPercentPrecise = (rate: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'percent',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(rate);
+};

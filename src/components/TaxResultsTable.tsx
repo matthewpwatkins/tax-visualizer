@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { formatCurrency, formatPercent } from '../utils/tax-utils';
+import { formatCurrency, formatPercent, formatPercentPrecise } from '../utils/tax-utils';
 import { BracketCalculation } from "../model/bracket-calculation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPercentage, faDollarSign, faChartPie, faInfoCircle, faTag, faMoneyBillWave, faInfinity, faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
@@ -292,7 +292,7 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
           </div>
           <div className="d-flex justify-content-between py-2 flex-wrap">
             <div className="fw-bold"><FontAwesomeIcon icon={faPercentage} className="me-1" /> Effective Tax Rate:</div>
-            <div className="fw-bold">{formatPercent(effectiveRate)}</div>
+            <div className="fw-bold">{formatPercentPrecise(effectiveRate)}</div>
           </div>
         </div>
       </div>

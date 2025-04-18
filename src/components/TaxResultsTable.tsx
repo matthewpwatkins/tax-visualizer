@@ -51,25 +51,26 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
           <table className="table table-striped table-hover">
             <thead className="table-dark">
               <tr>
-                <th><FontAwesomeIcon icon={faTag} className="me-1" /> Tax Bracket</th>
                 <th><FontAwesomeIcon icon={faPercentage} className="me-1" /> Rate</th>
+                <th><FontAwesomeIcon icon={faTag} className="me-1" /> Min</th>
+                <th><FontAwesomeIcon icon={faTag} className="me-1" /> Max</th>
                 <th style={{ width: '220px' }}><FontAwesomeIcon icon={faInfoCircle} className="me-1" /> Bracket Fill</th>
                 <th><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Income in Bracket</th>
-                <th><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Tax in Bracket</th>
                 <th><FontAwesomeIcon icon={faMoneyBillWave} className="me-1" /> Remaining in Bracket</th>
+                <th><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Tax in Bracket</th>
               </tr>
             </thead>
             <tbody>
               {bracketCalculations.map((bracket, index) => {
                 const { fillPercentage, remainingInBracket } = getBracketVisualization(bracket);
                 const isLastBracket = index === bracketCalculations.length - 1;
+                const isInBracket = bracket.incomeInBracket > 0;
                 
                 return (
                   <tr key={index}>
-                    <td>
-                      {formatCurrency(bracket.min)} - {bracket.max !== undefined ? formatCurrency(bracket.max) : 'and up'}
-                    </td>
                     <td>{formatPercent(bracket.rate)}</td>
+                    <td>{formatCurrency(bracket.min)}</td>
+                    <td>{bracket.max !== undefined ? formatCurrency(bracket.max) : <span style={{ fontSize: '1.25rem' }}><FontAwesomeIcon icon={faInfinity} /></span>}</td>
                     <td>
                       <div className="d-flex align-items-center">
                         <div className="me-2" style={{ minWidth: DISPLAY_CONSTANTS.PERCENTAGE_WIDTH, textAlign: 'right' }}>
@@ -94,9 +95,10 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
                       </div>
                     </td>
                     <td>{formatCurrency(bracket.incomeInBracket)}</td>
-                    <td>{formatCurrency(bracket.taxForBracket)}</td>
                     <td>
-                      {fillPercentage === 100 && bracket.max !== undefined ? (
+                      {!isInBracket ? (
+                        <span className="text-muted">—</span>
+                      ) : fillPercentage === 100 && bracket.max !== undefined ? (
                         <span className="text-success fw-bold">{DISPLAY_CONSTANTS.FULL_TEXT}</span>
                       ) : bracket.max !== undefined && remainingInBracket > 0 ? (
                         formatCurrency(remainingInBracket) + DISPLAY_CONSTANTS.LEFT_TEXT
@@ -104,6 +106,7 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
                         <span style={{ fontSize: '1.25rem' }}><FontAwesomeIcon icon={faInfinity} /></span>
                       )}
                     </td>
+                    <td>{formatCurrency(bracket.taxForBracket)}</td>
                   </tr>
                 );
               })}

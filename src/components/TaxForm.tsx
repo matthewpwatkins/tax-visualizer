@@ -8,7 +8,7 @@ import {
 } from "../constants/tax-constants";
 import { NumericFormat } from 'react-number-format';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalculator } from '@fortawesome/free-solid-svg-icons';
+import { faCalculator, faDollarSign } from '@fortawesome/free-solid-svg-icons';
 import { TaxCalculationRequest } from '../model/tax-calculation-request';
 
 interface TaxFormProps {
@@ -100,24 +100,29 @@ const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig, urlChecked }
         <form onSubmit={handleSubmit}>
           <div className="row mb-3">
             <div className="col-md-6">
-              <label htmlFor="income" className="form-label">Annual Income ($)</label>
-              <NumericFormat
-                className="form-control"
-                id="income"
-                name="income"
-                value={config.income}
-                onValueChange={(values) => {
-                  setConfig({
-                    ...config,
-                    income: values.floatValue || 0
-                  });
-                }}
-                thousandSeparator=","
-                decimalScale={2}
-                allowNegative={false}
-                placeholder="Enter income"
-                required
-              />
+              <label htmlFor="income" className="form-label">Annual Income</label>
+              <div className="input-group">
+                <span className="input-group-text">
+                  <FontAwesomeIcon icon={faDollarSign} />
+                </span>
+                <NumericFormat
+                  className="form-control"
+                  id="income"
+                  name="income"
+                  value={config.income}
+                  onValueChange={(values) => {
+                    setConfig({
+                      ...config,
+                      income: values.floatValue || 0
+                    });
+                  }}
+                  thousandSeparator=","
+                  decimalScale={2}
+                  allowNegative={false}
+                  placeholder="Enter income"
+                  required
+                />
+              </div>
             </div>
             
             <div className="col-md-6">
@@ -140,48 +145,58 @@ const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig, urlChecked }
 
           <div className="row mb-3">
             <div className="col-md-6">
-              <label htmlFor="deductions" className="form-label">Deductions ($)</label>
-              <NumericFormat
-                className="form-control"
-                id="deductions"
-                name="deductions"
-                value={Math.max(config.deductions, standardDeduction)}
-                onValueChange={(values) => {
-                  setConfig({
-                    ...config,
-                    deductions: Math.max(values.floatValue || 0, standardDeduction)
-                  });
-                }}
-                thousandSeparator=","
-                decimalScale={2}
-                allowNegative={false}
-                placeholder="Enter deductions"
-                required
-              />
+              <label htmlFor="deductions" className="form-label">Deductions</label>
+              <div className="input-group">
+                <span className="input-group-text">
+                  <FontAwesomeIcon icon={faDollarSign} />
+                </span>
+                <NumericFormat
+                  className="form-control"
+                  id="deductions"
+                  name="deductions"
+                  value={Math.max(config.deductions, standardDeduction)}
+                  onValueChange={(values) => {
+                    setConfig({
+                      ...config,
+                      deductions: Math.max(values.floatValue || 0, standardDeduction)
+                    });
+                  }}
+                  thousandSeparator=","
+                  decimalScale={2}
+                  allowNegative={false}
+                  placeholder="Enter deductions"
+                  required
+                />
+              </div>
               <div className="form-text">
                 Standard deduction for {config.filingStatus.replace(/([A-Z])/g, ' $1').toLowerCase()} in {config.year}: ${standardDeduction.toLocaleString('en-US')}
               </div>
             </div>
             
             <div className="col-md-6">
-              <label htmlFor="credits" className="form-label">Tax Credits ($)</label>
-              <NumericFormat
-                className="form-control"
-                id="credits"
-                name="credits"
-                value={config.credits}
-                onValueChange={(values) => {
-                  setConfig({
-                    ...config,
-                    credits: values.floatValue || 0
-                  });
-                }}
-                thousandSeparator=","
-                decimalScale={2}
-                allowNegative={false}
-                placeholder="Enter credits"
-                required
-              />
+              <label htmlFor="credits" className="form-label">Tax Credits</label>
+              <div className="input-group">
+                <span className="input-group-text">
+                  <FontAwesomeIcon icon={faDollarSign} />
+                </span>
+                <NumericFormat
+                  className="form-control"
+                  id="credits"
+                  name="credits"
+                  value={config.credits}
+                  onValueChange={(values) => {
+                    setConfig({
+                      ...config,
+                      credits: values.floatValue || 0
+                    });
+                  }}
+                  thousandSeparator=","
+                  decimalScale={2}
+                  allowNegative={false}
+                  placeholder="Enter credits"
+                  required
+                />
+              </div>
             </div>
           </div>
 

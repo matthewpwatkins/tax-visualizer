@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { formatCurrency, formatPercent, formatPercentPrecise } from '../utils/tax-utils';
 import { BracketCalculation } from "../model/bracket-calculation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -22,20 +22,20 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
   credits
 }) => {
   // Initialize expanded rows state - expand brackets that have income by default
-  const initializeExpandedRows = () => {
+  const initializeExpandedRows = useCallback(() => {
     const initialState: {[key: number]: boolean} = {};
     bracketCalculations.forEach((bracket, index) => {
       initialState[index] = bracket.incomeInBracket > 0;
     });
     return initialState;
-  };
+  }, [bracketCalculations]);
   
   const [expandedRows, setExpandedRows] = useState<{[key: number]: boolean}>({});
   
   // Update expanded rows when bracket calculations change
   useEffect(() => {
     setExpandedRows(initializeExpandedRows());
-  }, [bracketCalculations, initializeExpandedRows]);
+  }, [initializeExpandedRows]);
   
   // Toggle expanded state
   const toggleRow = (index: number) => {

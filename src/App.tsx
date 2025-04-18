@@ -1,56 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import './App.css';
 import TaxForm from './components/TaxForm';
 import TaxResultsTable from './components/TaxResultsTable';
-import { calculateTax, TaxConfig } from './utils/taxUtils';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
 import { faGlobe } from '@fortawesome/free-solid-svg-icons';
+import { useTaxParams } from './hooks/useTaxParams';
+import { useTaxCalculation } from './hooks/useTaxCalculation';
+import { TaxCalculationRequest } from './model/tax-calculation-request';
 
 function App() {
-  const [taxResults, setTaxResults] = useState<{
-    taxableIncome: number;
-    bracketCalculations: any[];
-    totalTax: number;
-    taxAfterCredits: number;
-    effectiveRate: number;
-    credits: number;
-  } | null>(null);
+  // Use custom hooks for URL parameters and tax calculations
+  const { initialConfig, urlChecked, updateUrlWithConfig } = useTaxParams();
+  const { taxResults, calculateTaxes } = useTaxCalculation();
 
-  // Store initial config from query parameters
-  const [initialConfig, setInitialConfig] = useState<TaxConfig | undefined>(undefined);
-
+  // Calculate taxes when initialConfig is available
   useEffect(() => {
-    // Parse query parameters when the component mounts
-    const searchParams = new URLSearchParams(window.location.search);
-    
-    // If we have query parameters, create a config and calculate tax immediately
-    if (searchParams.toString()) {
-      const config = TaxConfig.fromSearchParams(searchParams);
-      
-      if (config.validate()) {
-        setInitialConfig(config);
-        handleConfigSubmit(config);
-      }
+    if (initialConfig) {
+      calculateTaxes(initialConfig);
     }
-  }, []);
+  }, [initialConfig, calculateTaxes]);
 
-  const handleConfigSubmit = (config: TaxConfig) => {
-    // Update URL with query parameters
-    config.updateUrl();
-    
-    // Calculate tax based on config
-    const { income, filingStatus, deductions, credits, year } = config;
-    const results = calculateTax(income, filingStatus, deductions, credits, year);
-    
-    // Calculate effective tax rate
-    const effectiveRate = results.taxAfterCredits / income;
-    
-    setTaxResults({
-      ...results,
-      effectiveRate,
-      credits
-    });
+  // Handler for form submission
+  const handleConfigSubmit = (config: TaxCalculationRequest) => {
+    // Update URL and calculate taxes
+    updateUrlWithConfig(config);
+    calculateTaxes(config);
   };
 
   return (
@@ -87,10 +62,13 @@ function App() {
         
         <div className="row">
           <div className="col-lg-12">
-            <TaxForm 
-              onSubmit={handleConfigSubmit} 
-              initialConfig={initialConfig}
-            />
+            {urlChecked && (
+              <TaxForm 
+                onSubmit={handleConfigSubmit} 
+                initialConfig={initialConfig}
+                urlChecked={urlChecked}
+              />
+            )}
           </div>
         </div>
         

@@ -1,5 +1,6 @@
 import React from 'react';
-import { BracketCalculation, formatCurrency, formatPercent, DISPLAY_CONSTANTS } from '../utils/taxUtils';
+import { formatCurrency, formatPercent } from '../utils/tax-utils';
+import { BracketCalculation } from "../model/bracket-calculation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPercentage, faDollarSign, faChartPie, faInfoCircle, faTag, faMoneyBillWave, faInfinity } from '@fortawesome/free-solid-svg-icons';
 
@@ -23,8 +24,8 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
   
   // Calculate bracket fill percentage and remaining amount
   const getBracketVisualization = (bracket: BracketCalculation) => {
-    // For the highest bracket with null max, we'll use a fixed amount above min for visualization
-    const bracketWidth = bracket.max !== null 
+    // For the highest bracket with undefined max, we'll use a fixed amount above min for visualization
+    const bracketWidth = bracket.max !== undefined 
       ? bracket.max - bracket.min 
       : Math.max(100000, bracket.incomeInBracket);
     
@@ -32,7 +33,7 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
     const fillPercentage = Math.min(100, (bracket.incomeInBracket / bracketWidth) * 100);
     
     // Calculate remaining amount in bracket
-    const remainingInBracket = bracket.max !== null
+    const remainingInBracket = bracket.max !== undefined
       ? Math.max(0, bracket.max - bracket.min - bracket.incomeInBracket)
       : 0;
       
@@ -66,13 +67,13 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
                 return (
                   <tr key={index}>
                     <td>
-                      {formatCurrency(bracket.min)} - {bracket.max !== null ? formatCurrency(bracket.max) : 'and up'}
+                      {formatCurrency(bracket.min)} - {bracket.max !== undefined ? formatCurrency(bracket.max) : 'and up'}
                     </td>
                     <td>{formatPercent(bracket.rate)}</td>
                     <td>
                       <div className="d-flex align-items-center">
                         <div className="me-2" style={{ minWidth: DISPLAY_CONSTANTS.PERCENTAGE_WIDTH, textAlign: 'right' }}>
-                          {isLastBracket && bracket.max === null ? (
+                          {isLastBracket && bracket.max === undefined ? (
                             <span className="text-dark"></span>
                           ) : (
                             <span className="text-dark">{Math.round(fillPercentage)}%</span>
@@ -95,9 +96,9 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
                     <td>{formatCurrency(bracket.incomeInBracket)}</td>
                     <td>{formatCurrency(bracket.taxForBracket)}</td>
                     <td>
-                      {fillPercentage === 100 && bracket.max !== null ? (
+                      {fillPercentage === 100 && bracket.max !== undefined ? (
                         <span className="text-success fw-bold">{DISPLAY_CONSTANTS.FULL_TEXT}</span>
-                      ) : bracket.max !== null && remainingInBracket > 0 ? (
+                      ) : bracket.max !== undefined && remainingInBracket > 0 ? (
                         formatCurrency(remainingInBracket) + DISPLAY_CONSTANTS.LEFT_TEXT
                       ) : (
                         <span style={{ fontSize: '1.25rem' }}><FontAwesomeIcon icon={faInfinity} /></span>
@@ -146,3 +147,11 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
 };
 
 export default TaxResultsTable;
+// Tax bracket display constants
+
+export const DISPLAY_CONSTANTS = {
+  MIN_PROGRESS_BAR_HEIGHT: 24,
+  PERCENTAGE_WIDTH: 40,
+  FULL_TEXT: 'Full',
+  LEFT_TEXT: ' left'
+};

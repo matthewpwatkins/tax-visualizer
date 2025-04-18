@@ -1,62 +1,94 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { FilingStatus } from "../constants/filing-status";
 import { 
-  FilingStatus, 
-  FilingStatusEnum, 
-  getStandardDeduction, 
-  AVAILABLE_TAX_YEARS,
-  TaxConfig
-} from '../utils/taxUtils';
+  AVAILABLE_TAX_YEARS, 
+  DEMO_TAX_CALCULATION_REQUEST, 
+  EMPTY_TAX_CALCULATION_REQUEST,
+  STANDARD_DEDUCTIONS 
+} from "../constants/tax-constants";
 import { NumericFormat } from 'react-number-format';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCalculator } from '@fortawesome/free-solid-svg-icons';
+import { TaxCalculationRequest } from '../model/tax-calculation-request';
 
 interface TaxFormProps {
-  onSubmit: (config: TaxConfig) => void;
-  initialConfig?: TaxConfig;
+  onSubmit: (config: TaxCalculationRequest) => void;
+  initialConfig?: TaxCalculationRequest;
+  urlChecked: boolean;
 }
 
-const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig }) => {
-  // Initialize form with default config or provided initial config
-  const [config, setConfig] = useState<TaxConfig>(
-    initialConfig || new TaxConfig()
-  );
-
-  const [standardDeduction, setStandardDeduction] = useState<number>(
-    getStandardDeduction(config.filingStatus, config.year)
-  );
-
-  // Helper function to update config while preserving class instance
-  const updateConfig = useCallback((updates: Partial<TaxConfig>) => {
-    setConfig(new TaxConfig({
-      ...config,
-      ...updates
-    }));
-  }, [config]);
-
-  // Update standard deduction when filing status or year changes
-  useEffect(() => {
-    const newStandardDeduction = getStandardDeduction(config.filingStatus, config.year);
-    setStandardDeduction(newStandardDeduction);
-    
-    // If current deduction is less than the standard, update to the standard
-    if (config.deductions < newStandardDeduction) {
-      updateConfig({ deductions: newStandardDeduction });
+const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig, urlChecked }) => {
+  // Initialize form state based on props
+  const getInitialState = useCallback(() => {
+    if (initialConfig) {
+      return { ...initialConfig };
     }
-  }, [config.filingStatus, config.year, config.deductions, updateConfig]);
+    
+    return urlChecked 
+      ? { ...DEMO_TAX_CALCULATION_REQUEST }
+      : { ...EMPTY_TAX_CALCULATION_REQUEST };
+  }, [initialConfig, urlChecked]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const [config, setConfig] = useState<TaxCalculationRequest>(getInitialState);
+
+  // Update form when initialConfig changes (URL params)
+  useEffect(() => {
+    if (initialConfig) {
+      setConfig({ ...initialConfig });
+    }
+  }, [initialConfig]);
+  
+  // Get current standard deduction
+  const standardDeduction = STANDARD_DEDUCTIONS[config.year][config.filingStatus];
+  
+  // Ensure deductions meet minimum standard deduction
+  useEffect(() => {
+    if (config.deductions < standardDeduction) {
+      setConfig(prev => ({
+        ...prev,
+        deductions: standardDeduction
+      }));
+    }
+  }, [config.filingStatus, config.year, config.deductions, standardDeduction]);
+  
+  // Form submission handler
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    onSubmit({
+      ...config,
+      deductions: Math.max(config.deductions, standardDeduction)
+    });
+  };
+  
+  // Handle changes to filing status and year
+  const handleStatusOrYearChange = (name: string, value: string | number) => {
+    const newValue = name === "year" ? Number(value) : value;
+    const newConfig = { ...config, [name]: newValue };
+    
+    // Calculate new standard deduction
+    const newStandardDeduction = name === "year" 
+      ? STANDARD_DEDUCTIONS[Number(value)][config.filingStatus]
+      : STANDARD_DEDUCTIONS[config.year][value as FilingStatus];
+    
+    // Update config with minimum deduction value
+    newConfig.deductions = Math.max(config.deductions, newStandardDeduction);
+    setConfig(newConfig);
+  };
+  
+  // Form field change handler
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
     const { name, value } = e.target;
     
-    if (name === 'filingStatus') {
-      updateConfig({ filingStatus: value as FilingStatus });
-    } else if (name === 'year') {
-      updateConfig({ year: Number(value) });
+    if (name === "year" || name === "filingStatus") {
+      handleStatusOrYearChange(name, value);
+    } else {
+      setConfig({
+        ...config,
+        [name]: name === "income" || name === "deductions" || name === "credits" 
+          ? Number(value) 
+          : value
+      });
     }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(config);
   };
 
   return (
@@ -75,8 +107,10 @@ const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig }) => {
                 name="income"
                 value={config.income}
                 onValueChange={(values) => {
-                  const { floatValue } = values;
-                  updateConfig({ income: floatValue || 0 });
+                  setConfig({
+                    ...config,
+                    income: values.floatValue || 0
+                  });
                 }}
                 thousandSeparator=","
                 decimalScale={2}
@@ -96,10 +130,10 @@ const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig }) => {
                 onChange={handleChange}
                 required
               >
-                <option value={FilingStatusEnum.SINGLE}>Single</option>
-                <option value={FilingStatusEnum.MARRIED_JOINT}>Married Filing Jointly</option>
-                <option value={FilingStatusEnum.MARRIED_SEPARATE}>Married Filing Separately</option>
-                <option value={FilingStatusEnum.HEAD_OF_HOUSEHOLD}>Head of Household</option>
+                <option value={FilingStatus.SINGLE}>Single</option>
+                <option value={FilingStatus.MARRIED_JOINT}>Married Filing Jointly</option>
+                <option value={FilingStatus.MARRIED_SEPARATE}>Married Filing Separately</option>
+                <option value={FilingStatus.HEAD_OF_HOUSEHOLD}>Head of Household</option>
               </select>
             </div>
           </div>
@@ -111,22 +145,21 @@ const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig }) => {
                 className="form-control"
                 id="deductions"
                 name="deductions"
-                value={config.deductions}
+                value={Math.max(config.deductions, standardDeduction)}
                 onValueChange={(values) => {
-                  const { floatValue } = values;
-                  // Ensure deductions are not less than standard deduction
-                  const deductionValue = Math.max(floatValue || 0, standardDeduction);
-                  updateConfig({ deductions: deductionValue });
+                  setConfig({
+                    ...config,
+                    deductions: Math.max(values.floatValue || 0, standardDeduction)
+                  });
                 }}
                 thousandSeparator=","
                 decimalScale={2}
                 allowNegative={false}
-                min={standardDeduction}
                 placeholder="Enter deductions"
                 required
               />
               <div className="form-text">
-                Standard deduction for {config.filingStatus.replace(/([A-Z])/g, ' $1').toLowerCase()} in {config.year}: ${standardDeduction.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                Standard deduction for {config.filingStatus.replace(/([A-Z])/g, ' $1').toLowerCase()} in {config.year}: ${standardDeduction.toLocaleString('en-US')}
               </div>
             </div>
             
@@ -138,8 +171,10 @@ const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig }) => {
                 name="credits"
                 value={config.credits}
                 onValueChange={(values) => {
-                  const { floatValue } = values;
-                  updateConfig({ credits: floatValue || 0 });
+                  setConfig({
+                    ...config,
+                    credits: values.floatValue || 0
+                  });
                 }}
                 thousandSeparator=","
                 decimalScale={2}

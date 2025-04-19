@@ -12,7 +12,7 @@ import { TaxCalculationRequest } from './model/tax-calculation-request';
 function App() {
   // Use custom hooks for URL parameters and tax calculations
   const { initialConfig, urlChecked, updateUrlWithConfig } = useTaxParams();
-  const { taxResults, calculateTaxes, resetTaxResults } = useTaxCalculation();
+  const { taxResults, calculateTaxes } = useTaxCalculation();
   const [showCopyMessage, setShowCopyMessage] = useState(false);
   
   // Calculate taxes when initialConfig is available

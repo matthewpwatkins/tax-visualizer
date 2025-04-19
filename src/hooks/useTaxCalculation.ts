@@ -11,7 +11,6 @@ interface TaxResults extends TaxCalculationResult {
 interface UseTaxCalculationResult {
   taxResults: TaxResults | undefined;
   calculateTaxes: (config: TaxCalculationRequest) => void;
-  resetTaxResults: () => void;
 }
 
 /**
@@ -45,11 +44,5 @@ export function useTaxCalculation(): UseTaxCalculationResult {
     }
   };
 
-  // New function to reset tax results
-  const resetTaxResults = () => {
-    setTaxResults(undefined);
-    prevRequestRef.current = "";
-  };
-
-  return { taxResults, calculateTaxes, resetTaxResults };
+  return { taxResults, calculateTaxes };
 }

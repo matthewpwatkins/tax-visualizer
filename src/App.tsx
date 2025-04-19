@@ -52,31 +52,35 @@ function App() {
             <FontAwesomeIcon icon={faChartLine} className="me-2" />
             Tax Visualizer
           </span>
-          <button 
-            className="navbar-toggler" 
-            type="button" 
-            data-bs-toggle="collapse" 
-            data-bs-target="#navbarNav" 
-            aria-controls="navbarNav" 
-            aria-expanded="false" 
+          <button
+            className="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
             aria-label="Toggle navigation"
           >
             <FontAwesomeIcon icon={faBars} />
           </button>
           <div className="collapse navbar-collapse" id="navbarNav">
             <div className="navbar-nav ms-auto">
-              <a href="https://github.com/matthewpwatkins/tax-visualizer" 
-                className="nav-link text-white" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                aria-label="GitHub Repository">
+              <a
+                href="https://github.com/matthewpwatkins/tax-visualizer"
+                className="nav-link text-white"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="GitHub Repository"
+              >
                 <FontAwesomeIcon icon={faGithub} className="me-1" /> GitHub
               </a>
-              <a href="https://watkins.dev" 
-                className="nav-link text-white" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                aria-label="Developer's Website">
+              <a
+                href="https://watkins.dev"
+                className="nav-link text-white"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Developer's Website"
+              >
                 <FontAwesomeIcon icon={faGlobe} className="me-1" /> watkins.dev
               </a>
             </div>

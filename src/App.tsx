@@ -1,10 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import TaxForm from './components/TaxForm';
 import TaxResultsTable from './components/TaxResultsTable';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
-import { faGlobe, faBars, faChartLine, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faBars, faChartLine, faInfoCircle, faShareAlt, faUndo } from '@fortawesome/free-solid-svg-icons';
 import { useTaxParams } from './hooks/useTaxParams';
 import { useTaxCalculation } from './hooks/useTaxCalculation';
 import { TaxCalculationRequest } from './model/tax-calculation-request';
@@ -12,7 +12,8 @@ import { TaxCalculationRequest } from './model/tax-calculation-request';
 function App() {
   // Use custom hooks for URL parameters and tax calculations
   const { initialConfig, urlChecked, updateUrlWithConfig } = useTaxParams();
-  const { taxResults, calculateTaxes } = useTaxCalculation();
+  const { taxResults, calculateTaxes, resetTaxResults } = useTaxCalculation();
+  const [showCopyMessage, setShowCopyMessage] = useState(false);
   
   // Calculate taxes when initialConfig is available
   useEffect(() => {
@@ -26,6 +27,21 @@ function App() {
     // Update URL and calculate taxes
     updateUrlWithConfig(config);
     calculateTaxes(config);
+  };
+
+  // Function to copy current URL to clipboard
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setShowCopyMessage(true);
+    setTimeout(() => {
+      setShowCopyMessage(false);
+    }, 2000);
+  };
+
+  // Function to reset the form
+  const handleReset = () => {
+    window.history.pushState({}, '', window.location.pathname);
+    window.location.reload();
   };
 
   return (
@@ -89,18 +105,49 @@ function App() {
         </div>
         
         {taxResults && (
-          <div className="row mt-3 mt-md-4" id="tax-results">
-            <div className="col-12">
-              <TaxResultsTable 
-                bracketCalculations={taxResults.bracketCalculations}
-                taxableIncome={taxResults.taxableIncome}
-                totalTax={taxResults.totalTax}
-                taxAfterCredits={taxResults.taxAfterCredits}
-                effectiveRate={taxResults.effectiveRate}
-                credits={taxResults.credits}
-              />
+          <>
+            {showCopyMessage && (
+              <div className="row mt-3">
+                <div className="col-12">
+                  <div className="alert alert-success" role="alert">
+                    Link copied to clipboard!
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="row mt-3">
+              <div className="col-12 mb-3">
+                <div className="d-flex justify-content-end gap-2">
+                  <button 
+                    className="btn btn-outline-primary" 
+                    onClick={handleShare}
+                    aria-label="Share"
+                  >
+                    <FontAwesomeIcon icon={faShareAlt} className="me-1" /> Share
+                  </button>
+                  <button 
+                    className="btn btn-outline-secondary" 
+                    onClick={handleReset}
+                    aria-label="Reset"
+                  >
+                    <FontAwesomeIcon icon={faUndo} className="me-1" /> Reset
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+            <div className="row mt-0 mt-md-2" id="tax-results">
+              <div className="col-12">
+                <TaxResultsTable 
+                  bracketCalculations={taxResults.bracketCalculations}
+                  taxableIncome={taxResults.taxableIncome}
+                  totalTax={taxResults.totalTax}
+                  taxAfterCredits={taxResults.taxAfterCredits}
+                  effectiveRate={taxResults.effectiveRate}
+                  credits={taxResults.credits}
+                />
+              </div>
+            </div>
+          </>
         )}
       </div>
 

@@ -144,7 +144,7 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
                 e.preventDefault();
                 onShare();
               }}
-              className="text-white"
+              className="text-white text-decoration-none"
               aria-label="Share"
             >
               <FontAwesomeIcon icon={faShareAlt} className="me-1" /> Share

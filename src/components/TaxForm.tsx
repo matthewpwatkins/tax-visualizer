@@ -117,7 +117,7 @@ const TaxForm: React.FC<TaxFormProps> = ({
                 e.preventDefault();
                 onReset();
               }}
-              className="text-white"
+              className="text-white text-decoration-none"
               aria-label="Reset"
             >
               <FontAwesomeIcon icon={faUndo} className="me-1" /> Reset

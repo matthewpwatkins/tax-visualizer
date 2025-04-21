@@ -8,16 +8,30 @@ import {
 } from "../constants/tax-constants";
 import { NumericFormat } from 'react-number-format';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalculator, faDollarSign, faCalendar, faUserFriends, faReceipt, faPiggyBank } from '@fortawesome/free-solid-svg-icons';
+import { 
+  faCalculator, 
+  faDollarSign, 
+  faCalendar, 
+  faUserFriends, 
+  faReceipt, 
+  faPiggyBank, 
+  faUndo 
+} from '@fortawesome/free-solid-svg-icons';
 import { TaxCalculationRequest } from '../model/tax-calculation-request';
 
 interface TaxFormProps {
   onSubmit: (config: TaxCalculationRequest) => void;
   initialConfig?: TaxCalculationRequest;
   urlChecked: boolean;
+  onReset?: () => void;
 }
 
-const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig, urlChecked }) => {
+const TaxForm: React.FC<TaxFormProps> = ({ 
+  onSubmit, 
+  initialConfig, 
+  urlChecked,
+  onReset 
+}) => {
   // Initialize form state based on props
   const getInitialState = useCallback(() => {
     if (initialConfig) {
@@ -93,8 +107,23 @@ const TaxForm: React.FC<TaxFormProps> = ({ onSubmit, initialConfig, urlChecked }
 
   return (
     <div className="card mb-4">
-      <div className="card-header bg-primary text-white">
+      <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
         <h5 className="mb-0"><FontAwesomeIcon icon={faCalculator} className="me-2" /> Tax Calculator</h5>
+        <div>
+          {onReset && (
+            <a 
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onReset();
+              }}
+              className="text-white"
+              aria-label="Reset"
+            >
+              <FontAwesomeIcon icon={faUndo} className="me-1" /> Reset
+            </a>
+          )}
+        </div>
       </div>
       <div className="card-body">
         <form onSubmit={handleSubmit}>

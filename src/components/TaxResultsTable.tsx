@@ -2,7 +2,7 @@ import React from 'react';
 import { formatCurrency, formatPercent, formatPercentPrecise } from '../utils/tax-utils';
 import { BracketCalculation } from "../model/bracket-calculation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPercentage, faDollarSign, faChartPie, faInfoCircle, faTag, faMoneyBillWave, faInfinity } from '@fortawesome/free-solid-svg-icons';
+import { faPercentage, faDollarSign, faChartPie, faInfoCircle, faTag, faMoneyBillWave, faInfinity, faShareAlt } from '@fortawesome/free-solid-svg-icons';
 
 interface TaxResultsTableProps {
   bracketCalculations: BracketCalculation[];
@@ -11,6 +11,7 @@ interface TaxResultsTableProps {
   taxAfterCredits: number;
   effectiveRate: number;
   credits: number;
+  onShare?: () => void;
 }
 
 const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
@@ -19,7 +20,8 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
   totalTax,
   taxAfterCredits,
   effectiveRate,
-  credits
+  credits,
+  onShare
 }) => {
   // Calculate bracket fill percentage and remaining amount
   const getBracketVisualization = (bracket: BracketCalculation) => {
@@ -132,8 +134,23 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
   return (
     <div className="card">
       {/* Tax Bracket Breakdown */}
-      <div className="card-header bg-success text-white">
+      <div className="card-header bg-success text-white d-flex justify-content-between align-items-center">
         <h5 className="mb-0"><FontAwesomeIcon icon={faChartPie} className="me-2" /> Tax Breakdown by Bracket</h5>
+        <div>
+          {onShare && (
+            <a 
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                onShare();
+              }}
+              className="text-white"
+              aria-label="Share"
+            >
+              <FontAwesomeIcon icon={faShareAlt} className="me-1" /> Share
+            </a>
+          )}
+        </div>
       </div>
       
       {/* Mobile View */}

@@ -7,7 +7,7 @@
       { "rate": 0.24, "minIncome": 95375, "maxIncome": 182100 },
       { "rate": 0.32, "minIncome": 182100, "maxIncome": 231250 },
       { "rate": 0.35, "minIncome": 231250, "maxIncome": 578125 },
-      { "rate": 0.37, "minIncome": 578125, "maxIncome": null }
+      { "rate": 0.37, "minIncome": 578125 }
     ],
     "marriedJoint": [
       { "rate": 0.10, "minIncome": 0, "maxIncome": 22000 },
@@ -16,7 +16,7 @@
       { "rate": 0.24, "minIncome": 190750, "maxIncome": 364200 },
       { "rate": 0.32, "minIncome": 364200, "maxIncome": 462500 },
       { "rate": 0.35, "minIncome": 462500, "maxIncome": 693750 },
-      { "rate": 0.37, "minIncome": 693750, "maxIncome": null }
+      { "rate": 0.37, "minIncome": 693750 }
     ],
     "marriedSeparate": [
       { "rate": 0.10, "minIncome": 0, "maxIncome": 11000 },
@@ -25,7 +25,7 @@
       { "rate": 0.24, "minIncome": 95375, "maxIncome": 182100 },
       { "rate": 0.32, "minIncome": 182100, "maxIncome": 231250 },
       { "rate": 0.35, "minIncome": 231250, "maxIncome": 346875 },
-      { "rate": 0.37, "minIncome": 346875, "maxIncome": null }
+      { "rate": 0.37, "minIncome": 346875 }
     ],
     "headOfHousehold": [
       { "rate": 0.10, "minIncome": 0, "maxIncome": 15700 },
@@ -34,7 +34,7 @@
       { "rate": 0.24, "minIncome": 95350, "maxIncome": 182100 },
       { "rate": 0.32, "minIncome": 182100, "maxIncome": 231250 },
       { "rate": 0.35, "minIncome": 231250, "maxIncome": 578100 },
-      { "rate": 0.37, "minIncome": 578100, "maxIncome": null }
+      { "rate": 0.37, "minIncome": 578100 }
     ]
   },
   "standardDeductions": {

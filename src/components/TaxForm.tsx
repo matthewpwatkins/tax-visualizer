@@ -111,17 +111,17 @@ const TaxForm: React.FC<TaxFormProps> = ({
         <h5 className="mb-0"><FontAwesomeIcon icon={faCalculator} className="me-2" /> Tax Calculator</h5>
         <div>
           {onReset && (
-            <a 
-              href="#"
+            <button 
+              type="button"
               onClick={(e) => {
                 e.preventDefault();
                 onReset();
               }}
-              className="text-white text-decoration-none"
+              className="btn btn-link text-white p-0 border-0 text-decoration-none"
               aria-label="Reset"
             >
               <FontAwesomeIcon icon={faUndo} className="me-1" /> Reset
-            </a>
+            </button>
           )}
         </div>
       </div>

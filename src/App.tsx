@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import './App.css';
 import TaxForm from './components/TaxForm';
 import TaxResultsTable from './components/TaxResultsTable';

@@ -138,17 +138,17 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
         <h5 className="mb-0"><FontAwesomeIcon icon={faChartPie} className="me-2" /> Tax Breakdown by Bracket</h5>
         <div>
           {onShare && (
-            <a 
-              href="#"
+            <button
+              type="button"
               onClick={(e) => {
                 e.preventDefault();
                 onShare();
               }}
-              className="text-white text-decoration-none"
-              aria-label="Share"
+              className="btn btn-link text-white p-0 border-0 text-decoration-none"
+              aria-label="Reset"
             >
               <FontAwesomeIcon icon={faShareAlt} className="me-1" /> Share
-            </a>
+            </button>
           )}
         </div>
       </div>

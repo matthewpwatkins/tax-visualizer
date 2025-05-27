@@ -2,7 +2,7 @@ import React from 'react';
 import { formatCurrency, formatPercent, formatPercentPrecise } from '../utils/tax-utils';
 import { BracketCalculation } from "../model/bracket-calculation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPercentage, faDollarSign, faChartPie, faInfoCircle, faTag, faMoneyBillWave, faInfinity, faShareAlt } from '@fortawesome/free-solid-svg-icons';
+import { faPercentage, faDollarSign, faChartPie, faInfinity, faShareAlt } from '@fortawesome/free-solid-svg-icons';
 
 interface TaxResultsTableProps {
   bracketCalculations: BracketCalculation[];

@@ -73,12 +73,14 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
     return (
       <div className="card mb-3" key={index}> {/* Increased bottom margin for better separation */}
         <div className="card-header">
-          <span className="fw-bold">{formatPercent(bracket.rate)} Tax Rate</span>
-          {isInBracket && (
-            <span className="ms-2 badge bg-success">
-              {formatCurrency(bracket.incomeInBracket)}
-            </span>
-          )}
+          <span className="fw-bold">
+            {formatPercent(bracket.rate)} Tax Rate
+            {bracket.max !== undefined && (
+              <span className="text-muted ms-2" style={{ fontWeight: "normal", fontSize: "0.95em" }}>
+                (up to {formatCurrency(Math.floor(bracket.max)).replace(/\.00$/, '')})
+              </span>
+            )}
+          </span>
         </div>
         
         <div className="card-body">
@@ -88,40 +90,41 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
               {formatCurrency(bracket.min)} - {bracket.max !== undefined ? formatCurrency(bracket.max) : <FontAwesomeIcon icon={faInfinity} />}
             </div>
           </div>
-          
-          <div className="row mb-2">
-            <div className="col-4 fw-bold">Income</div>
-            <div className="col">{formatCurrency(bracket.incomeInBracket)}</div>
-          </div>
-          
-          <div className="row mb-2">
-            <div className="col-4 fw-bold">Remaining</div>
-            <div className="col">
-              {!isInBracket ? (
-                <span className="text-muted">—</span>
-              ) : vizDetails.fillPercentage === 100 && bracket.max !== undefined ? (
-                <span className="text-success fw-bold">{DISPLAY_CONSTANTS.FULL_TEXT}</span>
-              ) : bracket.max !== undefined && vizDetails.remainingInBracket > 0 ? (
-                formatCurrency(vizDetails.remainingInBracket) + DISPLAY_CONSTANTS.LEFT_TEXT
-              ) : (
-                <span><FontAwesomeIcon icon={faInfinity} /></span>
+          {isInBracket && (
+            <>
+              <div className="row mb-2">
+                <div className="col-4 fw-bold">Income</div>
+                <div className="col">{formatCurrency(bracket.incomeInBracket)}</div>
+              </div>
+              
+              <div className="row mb-2">
+                <div className="col-4 fw-bold">Remaining</div>
+                <div className="col">
+                  {vizDetails.fillPercentage === 100 && bracket.max !== undefined ? (
+                    <span className="text-success fw-bold">{DISPLAY_CONSTANTS.FULL_TEXT}</span>
+                  ) : bracket.max !== undefined && vizDetails.remainingInBracket > 0 ? (
+                    formatCurrency(vizDetails.remainingInBracket) + DISPLAY_CONSTANTS.LEFT_TEXT
+                  ) : (
+                    <span><FontAwesomeIcon icon={faInfinity} /></span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="row"> {/* Added mb-3 for spacing before fill */}
+                <div className="col-4 fw-bold">Tax</div>
+                <div className={`col ${bracket.taxForBracket > 0 ? "text-danger" : ""}`}>
+                  {formatCurrency(bracket.taxForBracket)}
+                </div>
+              </div>
+      
+              {/* Bracket Fill percentage text remains in card-body */}
+              {!isLastBracket && (
+                <div className="row mt-2"> {/* mt-2 for spacing */}
+                  <div className="col-4 fw-bold">Fill</div>
+                  <div className="col">{Math.round(vizDetails.fillPercentage)}%</div>
+                </div>
               )}
-            </div>
-          </div>
-          
-          <div className="row"> {/* Added mb-3 for spacing before fill */}
-            <div className="col-4 fw-bold">Tax</div>
-            <div className={`col ${bracket.taxForBracket > 0 ? "text-danger" : ""}`}>
-              {formatCurrency(bracket.taxForBracket)}
-            </div>
-          </div>
-
-          {/* Bracket Fill percentage text remains in card-body */}
-          {!isLastBracket && (
-            <div className="row mt-2"> {/* mt-2 for spacing */}
-              <div className="col-4 fw-bold">Fill</div>
-              <div className="col">{Math.round(vizDetails.fillPercentage)}%</div>
-            </div>
+            </>
           )}
         </div>
 

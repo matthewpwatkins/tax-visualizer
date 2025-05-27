@@ -23,35 +23,55 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
   credits,
   onShare
 }) => {
-  // Calculate bracket fill percentage and remaining amount
-  const getBracketVisualization = (bracket: BracketCalculation) => {
-    // For the highest bracket with undefined max, we'll use a fixed amount above min for visualization
-    const bracketWidth = bracket.max !== undefined 
-      ? bracket.max - bracket.min 
-      : Math.max(100000, bracket.incomeInBracket);
-    
-    // Calculate fill percentage
-    const fillPercentage = Math.min(100, (bracket.incomeInBracket / bracketWidth) * 100);
+  // Calculate the effective width of each bracket and the total span
+  const bracketEffectiveWidths = bracketCalculations.map(bracket => {
+    return bracket.max !== undefined
+      ? bracket.max - bracket.min
+      : Math.max(100000, bracket.incomeInBracket); // Representative width for the last "infinite" bracket
+  });
+
+  // Determine the maximum width of non-infinite brackets to use as a reference
+  const finiteBracketEffectiveWidths = bracketCalculations
+    .map((bracket, index) => (bracket.max !== undefined ? bracketEffectiveWidths[index] : 0))
+    .filter(width => width > 0);
+
+  let maxWidthReference = finiteBracketEffectiveWidths.length > 0 ? Math.max(...finiteBracketEffectiveWidths) : 0;
+
+  // If no finite brackets exist or their max width is 0, fallback to the largest effective width of any bracket, or 100000
+  if (maxWidthReference === 0) {
+    maxWidthReference = bracketEffectiveWidths.length > 0 ? Math.max(...bracketEffectiveWidths) : 100000;
+  }
+  // Ensure maxWidthReference is at least 1 to prevent division by zero if all widths are 0 (highly unlikely)
+  maxWidthReference = Math.max(1, maxWidthReference);
+
+  // Calculate bracket fill percentage, tax portion, remaining amount, and relative progress bar width
+  const getBracketVisualization = (bracket: BracketCalculation, individualEffectiveWidth: number, referenceWidth: number) => {
+    // Calculate fill percentage based on income within this bracket's effective width
+    const fillPercentage = individualEffectiveWidth > 0 ? Math.min(100, (bracket.incomeInBracket / individualEffectiveWidth) * 100) : 0;
     
     // Calculate tax portion of the progress bar (taxable percentage of the filled part)
-    const taxFillPercentage = fillPercentage * (bracket.rate);
+    const taxFillPercentage = fillPercentage * bracket.rate;
     
-    // Calculate remaining amount in bracket
+    // Calculate remaining amount in bracket (uses actual bracket.max - bracket.min for text display)
     const remainingInBracket = bracket.max !== undefined
       ? Math.max(0, bracket.max - bracket.min - bracket.incomeInBracket)
       : 0;
+
+    // Calculate the relative width of the progress bar container itself against the reference width
+    const relativeProgressBarWidthPercentage = (individualEffectiveWidth / referenceWidth) * 100;
       
-    return { fillPercentage, taxFillPercentage, remainingInBracket };
+    return { fillPercentage, taxFillPercentage, remainingInBracket, relativeProgressBarWidthPercentage };
   };
 
-  // Mobile card view for each bracket - now always showing all details
-  const renderMobileBracketCard = (bracket: BracketCalculation, index: number) => {
-    const { fillPercentage, taxFillPercentage, remainingInBracket } = getBracketVisualization(bracket);
+  // Card view for each bracket - used for all screen sizes
+  const renderBracketCard = (bracket: BracketCalculation, index: number) => {
+    const individualEffectiveWidth = bracketEffectiveWidths[index];
+    const vizDetails = getBracketVisualization(bracket, individualEffectiveWidth, maxWidthReference);
     const isLastBracket = index === bracketCalculations.length - 1;
     const isInBracket = bracket.incomeInBracket > 0;
 
     return (
-      <div className="card mb-2" key={index}>
+      <div className="card mb-3" key={index}> {/* Increased bottom margin for better separation */}
         <div className="card-header">
           <span className="fw-bold">{formatPercent(bracket.rate)} Tax Rate</span>
           {isInBracket && (
@@ -69,37 +89,6 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
             </div>
           </div>
           
-          <div className="mb-3">
-            <div className="d-flex justify-content-between align-items-center mb-1">
-              <div><FontAwesomeIcon icon={faInfoCircle} className="me-1" /> Bracket Fill:</div>
-              <div>{Math.round(fillPercentage)}%</div>
-            </div>
-            {!isLastBracket && (
-              <div className="progress" style={{ height: DISPLAY_CONSTANTS.MIN_PROGRESS_BAR_HEIGHT_MOBILE }}>
-                {isInBracket && (
-                  <>
-                    <div 
-                      className="progress-bar bg-success" 
-                      role="progressbar" 
-                      style={{ width: `${fillPercentage - taxFillPercentage}%` }}
-                      aria-valuenow={fillPercentage - taxFillPercentage}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                    ></div>
-                    <div 
-                      className="progress-bar bg-danger" 
-                      role="progressbar" 
-                      style={{ width: `${taxFillPercentage}%` }}
-                      aria-valuenow={taxFillPercentage}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                    ></div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-          
           <div className="d-flex justify-content-between mb-2">
             <div><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Income in Bracket:</div>
             <div>{formatCurrency(bracket.incomeInBracket)}</div>
@@ -110,23 +99,64 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
             <div>
               {!isInBracket ? (
                 <span className="text-muted">—</span>
-              ) : fillPercentage === 100 && bracket.max !== undefined ? (
+              ) : vizDetails.fillPercentage === 100 && bracket.max !== undefined ? (
                 <span className="text-success fw-bold">{DISPLAY_CONSTANTS.FULL_TEXT}</span>
-              ) : bracket.max !== undefined && remainingInBracket > 0 ? (
-                formatCurrency(remainingInBracket) + DISPLAY_CONSTANTS.LEFT_TEXT
+              ) : bracket.max !== undefined && vizDetails.remainingInBracket > 0 ? (
+                formatCurrency(vizDetails.remainingInBracket) + DISPLAY_CONSTANTS.LEFT_TEXT
               ) : (
                 <span><FontAwesomeIcon icon={faInfinity} /></span>
               )}
             </div>
           </div>
           
-          <div className="d-flex justify-content-between">
+          <div className="d-flex justify-content-between mb-3"> {/* Added mb-3 for spacing before fill */}
             <div><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Tax in Bracket:</div>
             <div className={bracket.taxForBracket > 0 ? "text-danger" : ""}>
               {formatCurrency(bracket.taxForBracket)}
             </div>
           </div>
+          {/* Bracket Fill percentage text remains in card-body */}
+          {!isLastBracket && (
+            <div className="d-flex justify-content-between align-items-center mt-2"> {/* mt-2 for spacing */}
+              <div><FontAwesomeIcon icon={faInfoCircle} className="me-1" /> Bracket Fill:</div>
+              <div>{Math.round(vizDetails.fillPercentage)}%</div>
+            </div>
+          )}
         </div>
+
+        {/* Progress bar only in card-footer */}
+        {!isLastBracket && (
+          <div className="card-footer pt-2 pb-2"> {/* Adjusted padding for footer */}
+            <div
+              className="progress"
+              style={{
+                height: `${DISPLAY_CONSTANTS.MIN_PROGRESS_BAR_HEIGHT}px`, // Added 'px' unit
+                width: `${vizDetails.relativeProgressBarWidthPercentage}%`
+              }}
+            >
+              {isInBracket && (
+                <>
+                  <div
+                    className="progress-bar bg-success"
+                    role="progressbar"
+                    style={{ width: `${vizDetails.fillPercentage - vizDetails.taxFillPercentage}%` }}
+                    aria-valuenow={vizDetails.fillPercentage - vizDetails.taxFillPercentage}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  ></div>
+                  <div
+                    className="progress-bar bg-danger"
+                    role="progressbar"
+                    style={{ width: `${vizDetails.taxFillPercentage}%` }}
+                    aria-valuenow={vizDetails.taxFillPercentage}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  ></div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   };
@@ -152,96 +182,12 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
           )}
         </div>
       </div>
-      
-      {/* Mobile View */}
-      <div className="d-block d-lg-none card-body">
-        {bracketCalculations.map((bracket, index) => 
-          renderMobileBracketCard(bracket, index)
+
+      {/* Card View for all screen sizes */}
+      <div className="card-body"> {/* Removed d-block d-lg-none to show on all screens */}
+        {bracketCalculations.map((bracket, index) =>
+          renderBracketCard(bracket, index) // Use the renamed function
         )}
-      </div>
-      
-      {/* Desktop View */}
-      <div className="d-none d-lg-block card-body">
-        <div className="table-responsive">
-          <table className="table table-striped table-hover">
-            <thead className="table-dark">
-              <tr>
-                <th><FontAwesomeIcon icon={faPercentage} className="me-1" /> Rate</th>
-                <th><FontAwesomeIcon icon={faTag} className="me-1" /> Min</th>
-                <th><FontAwesomeIcon icon={faTag} className="me-1" /> Max</th>
-                <th style={{ width: '220px' }}><FontAwesomeIcon icon={faInfoCircle} className="me-1" /> Bracket Fill</th>
-                <th><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Income in Bracket</th>
-                <th><FontAwesomeIcon icon={faMoneyBillWave} className="me-1" /> Remaining in Bracket</th>
-                <th><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Tax in Bracket</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bracketCalculations.map((bracket, index) => {
-                const { fillPercentage, taxFillPercentage, remainingInBracket } = getBracketVisualization(bracket);
-                const isLastBracket = index === bracketCalculations.length - 1;
-                const isInBracket = bracket.incomeInBracket > 0;
-                
-                return (
-                  <tr key={index}>
-                    <td>{formatPercent(bracket.rate)}</td>
-                    <td>{formatCurrency(bracket.min)}</td>
-                    <td>{bracket.max !== undefined ? formatCurrency(bracket.max) : <span style={{ fontSize: '1.25rem' }}><FontAwesomeIcon icon={faInfinity} /></span>}</td>
-                    <td>
-                      <div className="d-flex align-items-center">
-                        <div className="me-2" style={{ minWidth: DISPLAY_CONSTANTS.PERCENTAGE_WIDTH, textAlign: 'right' }}>
-                          {isLastBracket && bracket.max === undefined ? (
-                            <span className="text-dark"></span>
-                          ) : (
-                            <span className="text-dark">{Math.round(fillPercentage)}%</span>
-                          )}
-                        </div>
-                        {!isLastBracket && (
-                          <div className="progress flex-grow-1" style={{ height: DISPLAY_CONSTANTS.MIN_PROGRESS_BAR_HEIGHT }}>
-                            {isInBracket && (
-                              <>
-                                <div 
-                                  className="progress-bar bg-success" 
-                                  role="progressbar" 
-                                  style={{ width: `${fillPercentage - taxFillPercentage}%` }}
-                                  aria-valuenow={fillPercentage - taxFillPercentage}
-                                  aria-valuemin={0}
-                                  aria-valuemax={100}
-                                ></div>
-                                <div 
-                                  className="progress-bar bg-danger" 
-                                  role="progressbar" 
-                                  style={{ width: `${taxFillPercentage}%` }}
-                                  aria-valuenow={taxFillPercentage}
-                                  aria-valuemin={0}
-                                  aria-valuemax={100}
-                                ></div>
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </td>
-                    <td>{formatCurrency(bracket.incomeInBracket)}</td>
-                    <td>
-                      {!isInBracket ? (
-                        <span className="text-muted">—</span>
-                      ) : fillPercentage === 100 && bracket.max !== undefined ? (
-                        <span className="text-success fw-bold">{DISPLAY_CONSTANTS.FULL_TEXT}</span>
-                      ) : bracket.max !== undefined && remainingInBracket > 0 ? (
-                        formatCurrency(remainingInBracket) + DISPLAY_CONSTANTS.LEFT_TEXT
-                      ) : (
-                        <span style={{ fontSize: '1.25rem' }}><FontAwesomeIcon icon={faInfinity} /></span>
-                      )}
-                    </td>
-                    <td className={bracket.taxForBracket > 0 ? "text-danger" : ""}>
-                      {formatCurrency(bracket.taxForBracket)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
       </div>
 
       {/* Horizontal divider between tables */}
@@ -284,7 +230,6 @@ export default TaxResultsTable;
 
 export const DISPLAY_CONSTANTS = {
   MIN_PROGRESS_BAR_HEIGHT: 24,
-  MIN_PROGRESS_BAR_HEIGHT_MOBILE: 16, // Smaller height for mobile
   PERCENTAGE_WIDTH: 40,
   FULL_TEXT: 'Full',
   LEFT_TEXT: ' left'

@@ -82,21 +82,21 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
         </div>
         
         <div className="card-body">
-          <div className="d-flex justify-content-between mb-2">
-            <div><FontAwesomeIcon icon={faTag} className="me-1" /> Bracket Range:</div>
-            <div>
+          <div className="row mb-2">
+            <div className="col-4 fw-bold">Range</div>
+            <div className="col">
               {formatCurrency(bracket.min)} - {bracket.max !== undefined ? formatCurrency(bracket.max) : <FontAwesomeIcon icon={faInfinity} />}
             </div>
           </div>
           
-          <div className="d-flex justify-content-between mb-2">
-            <div><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Income in Bracket:</div>
-            <div>{formatCurrency(bracket.incomeInBracket)}</div>
+          <div className="row mb-2">
+            <div className="col-4 fw-bold">Income</div>
+            <div className="col">{formatCurrency(bracket.incomeInBracket)}</div>
           </div>
           
-          <div className="d-flex justify-content-between mb-2">
-            <div><FontAwesomeIcon icon={faMoneyBillWave} className="me-1" /> Remaining:</div>
-            <div>
+          <div className="row mb-2">
+            <div className="col-4 fw-bold">Remaining</div>
+            <div className="col">
               {!isInBracket ? (
                 <span className="text-muted">—</span>
               ) : vizDetails.fillPercentage === 100 && bracket.max !== undefined ? (
@@ -109,17 +109,18 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
             </div>
           </div>
           
-          <div className="d-flex justify-content-between mb-3"> {/* Added mb-3 for spacing before fill */}
-            <div><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Tax in Bracket:</div>
-            <div className={bracket.taxForBracket > 0 ? "text-danger" : ""}>
+          <div className="row"> {/* Added mb-3 for spacing before fill */}
+            <div className="col-4 fw-bold">Tax</div>
+            <div className={`col ${bracket.taxForBracket > 0 ? "text-danger" : ""}`}>
               {formatCurrency(bracket.taxForBracket)}
             </div>
           </div>
+
           {/* Bracket Fill percentage text remains in card-body */}
           {!isLastBracket && (
-            <div className="d-flex justify-content-between align-items-center mt-2"> {/* mt-2 for spacing */}
-              <div><FontAwesomeIcon icon={faInfoCircle} className="me-1" /> Bracket Fill:</div>
-              <div>{Math.round(vizDetails.fillPercentage)}%</div>
+            <div className="row mt-2"> {/* mt-2 for spacing */}
+              <div className="col-4 fw-bold">Fill</div>
+              <div className="col">{Math.round(vizDetails.fillPercentage)}%</div>
             </div>
           )}
         </div>

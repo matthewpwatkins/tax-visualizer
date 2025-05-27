@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { TaxCalculationRequest } from '../model/tax-calculation-request';
 import { TaxCalculationResult } from '../model/tax-calculation-result';
 import { calculateTax } from '../utils/tax-utils';
@@ -21,28 +21,28 @@ export function useTaxCalculation(): UseTaxCalculationResult {
   // Use a ref to track the previous calculation request to avoid redundant updates
   const prevRequestRef = useRef<string>("");
 
-  const calculateTaxes = (config: TaxCalculationRequest) => {
+  const calculateTaxes = useCallback((config: TaxCalculationRequest) => {
     // Create a string representation of the config to compare against previous calculations
     const requestString = JSON.stringify(config);
-    
+
     // Only recalculate if the request has changed
     if (prevRequestRef.current !== requestString) {
       // Calculate tax based on config
       const results = calculateTax(config);
-      
+
       // Calculate effective tax rate (handle division by zero)
       const effectiveRate = config.income > 0 ? results.taxAfterCredits / config.income : 0;
-      
+
       setTaxResults({
         ...results,
         effectiveRate,
         credits: config.credits
       });
-      
+
       // Update the previous request reference
       prevRequestRef.current = requestString;
     }
-  };
+  }, []); // Empty dependency array: calculateTax itself doesn't depend on changing values from this hook's scope
 
   return { taxResults, calculateTaxes };
 }

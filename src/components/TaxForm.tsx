@@ -126,7 +126,46 @@ const TaxForm: React.FC<TaxFormProps> = ({
         </div>
       </div>
       <div className="card-body">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>      
+          {/* Tax Year */}
+          <div className="mb-3">
+            <label htmlFor="year" className="form-label">
+              <FontAwesomeIcon icon={faCalendar} className="me-1" /> Tax Year
+            </label>
+            <select
+              className="form-select"
+              id="year"
+              name="year"
+              value={config.year}
+              onChange={handleChange}
+              required
+            >
+              {AVAILABLE_TAX_YEARS.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Filing Status */}
+          <div className="mb-3">
+            <label htmlFor="filingStatus" className="form-label">
+              <FontAwesomeIcon icon={faUserFriends} className="me-1" /> Filing Status
+            </label>
+            <select
+              className="form-select"
+              id="filingStatus"
+              name="filingStatus"
+              value={config.filingStatus}
+              onChange={handleChange}
+              required
+            >
+              <option value={FilingStatus.SINGLE}>Single</option>
+              <option value={FilingStatus.MARRIED_JOINT}>Married Filing Jointly</option>
+              <option value={FilingStatus.MARRIED_SEPARATE}>Married Filing Separately</option>
+              <option value={FilingStatus.HEAD_OF_HOUSEHOLD}>Head of Household</option>
+            </select>
+          </div>
+
           {/* Income */}
           <div className="mb-3">
             <label htmlFor="income" className="form-label">
@@ -152,45 +191,6 @@ const TaxForm: React.FC<TaxFormProps> = ({
                 required
               />
             </div>
-          </div>
-          
-          {/* Filing Status */}
-          <div className="mb-3">
-            <label htmlFor="filingStatus" className="form-label">
-              <FontAwesomeIcon icon={faUserFriends} className="me-1" /> Filing Status
-            </label>
-            <select
-              className="form-select"
-              id="filingStatus"
-              name="filingStatus"
-              value={config.filingStatus}
-              onChange={handleChange}
-              required
-            >
-              <option value={FilingStatus.SINGLE}>Single</option>
-              <option value={FilingStatus.MARRIED_JOINT}>Married Filing Jointly</option>
-              <option value={FilingStatus.MARRIED_SEPARATE}>Married Filing Separately</option>
-              <option value={FilingStatus.HEAD_OF_HOUSEHOLD}>Head of Household</option>
-            </select>
-          </div>
-
-          {/* Tax Year */}
-          <div className="mb-3">
-            <label htmlFor="year" className="form-label">
-              <FontAwesomeIcon icon={faCalendar} className="me-1" /> Tax Year
-            </label>
-            <select
-              className="form-select"
-              id="year"
-              name="year"
-              value={config.year}
-              onChange={handleChange}
-              required
-            >
-              {AVAILABLE_TAX_YEARS.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
           </div>
 
           {/* Deductions */}

@@ -38,9 +38,9 @@
     ]
   },
   "standardDeductions": {
-    "single": 15000,
-    "marriedJoint": 30000,
-    "marriedSeparate": 15000,
-    "headOfHousehold": 22500
+    "single": 15750,
+    "marriedJoint": 31500,
+    "marriedSeparate": 15750,
+    "headOfHousehold": 23625
   }
 }

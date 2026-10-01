@@ -2,15 +2,17 @@ import React from 'react';
 import { formatCurrency, formatPercent, formatPercentPrecise } from '../utils/tax-utils';
 import { BracketCalculation } from "../model/bracket-calculation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPercentage, faDollarSign, faChartPie, faInfinity, faShareAlt } from '@fortawesome/free-solid-svg-icons';
+import { faPercentage, faDollarSign, faChartPie, faInfinity, faShareAlt, faHandHoldingDollar } from '@fortawesome/free-solid-svg-icons';
 
 interface TaxResultsTableProps {
   bracketCalculations: BracketCalculation[];
   taxableIncome: number;
   totalTax: number;
+  nonRefundableCreditsApplied: number;
+  nonRefundableCreditsUnused: number;
+  refundableCredits: number;
   taxAfterCredits: number;
   effectiveRate: number;
-  credits: number;
   onShare?: () => void;
 }
 
@@ -18,11 +20,15 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
   bracketCalculations,
   taxableIncome,
   totalTax,
+  nonRefundableCreditsApplied,
+  nonRefundableCreditsUnused,
+  refundableCredits,
   taxAfterCredits,
   effectiveRate,
-  credits,
   onShare
 }) => {
+  const isRefund = taxAfterCredits < 0;
+
   // Calculate the effective width of each bracket and the total span
   const bracketEffectiveWidths = bracketCalculations.map(bracket => {
     return bracket.max !== undefined
@@ -208,19 +214,37 @@ const TaxResultsTable: React.FC<TaxResultsTableProps> = ({
             <div className="fw-bold"><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Total Tax:</div>
             <div className="fw-bold text-danger">{formatCurrency(totalTax)}</div>
           </div>
-          {credits > 0 && (
+          {nonRefundableCreditsApplied > 0 && (
             <div className="d-flex justify-content-between border-bottom py-2 flex-wrap">
-              <div className="fw-bold"><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Tax Credits:</div>
-              <div className="fw-bold text-success">-{formatCurrency(credits)}</div>
+              <div className="fw-bold">
+                <FontAwesomeIcon icon={faDollarSign} className="me-1" /> Non-Refundable Credits:
+                {nonRefundableCreditsUnused > 0 && (
+                  <span className="fw-normal text-muted ms-2" style={{ fontSize: "0.9em" }}>
+                    {formatCurrency(nonRefundableCreditsUnused)} unused
+                  </span>
+                )}
+              </div>
+              <div className="fw-bold text-success">-{formatCurrency(nonRefundableCreditsApplied)}</div>
+            </div>
+          )}
+          {refundableCredits > 0 && (
+            <div className="d-flex justify-content-between border-bottom py-2 flex-wrap">
+              <div className="fw-bold"><FontAwesomeIcon icon={faHandHoldingDollar} className="me-1" /> Refundable Credits:</div>
+              <div className="fw-bold text-success">-{formatCurrency(refundableCredits)}</div>
             </div>
           )}
           <div className="d-flex justify-content-between border-bottom py-2 flex-wrap">
-            <div className="fw-bold"><FontAwesomeIcon icon={faDollarSign} className="me-1" /> Final Tax Amount:</div>
-            <div className="fw-bold">{formatCurrency(taxAfterCredits)}</div>
+            <div className="fw-bold">
+              <FontAwesomeIcon icon={isRefund ? faHandHoldingDollar : faDollarSign} className="me-1" />
+              {isRefund ? ' Refund:' : ' Final Tax Amount:'}
+            </div>
+            <div className={`fw-bold ${isRefund ? "text-success" : ""}`}>
+              {formatCurrency(Math.abs(taxAfterCredits))}
+            </div>
           </div>
           <div className="d-flex justify-content-between py-2 flex-wrap">
             <div className="fw-bold"><FontAwesomeIcon icon={faPercentage} className="me-1" /> Effective Tax Rate:</div>
-            <div className="fw-bold">{formatPercentPrecise(effectiveRate)}</div>
+            <div className={`fw-bold ${isRefund ? "text-success" : ""}`}>{formatPercentPrecise(effectiveRate)}</div>
           </div>
         </div>
       </div>

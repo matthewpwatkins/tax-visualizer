@@ -15,6 +15,7 @@ import {
   faUserFriends, 
   faReceipt, 
   faPiggyBank, 
+  faHandHoldingDollar,
   faUndo 
 } from '@fortawesome/free-solid-svg-icons';
 import { TaxCalculationRequest } from '../model/tax-calculation-request';
@@ -98,8 +99,8 @@ const TaxForm: React.FC<TaxFormProps> = ({
     } else {
       setConfig({
         ...config,
-        [name]: name === "income" || name === "deductions" || name === "credits" 
-          ? Number(value) 
+        [name]: name === "income" || name === "deductions" || name === "nonRefundableCredits" || name === "refundableCredits"
+          ? Number(value)
           : value
       });
     }
@@ -224,29 +225,61 @@ const TaxForm: React.FC<TaxFormProps> = ({
           </div>
           
           {/* Tax Credits */}
-          <div className="mb-4">
-            <label htmlFor="credits" className="form-label">
-              <FontAwesomeIcon icon={faPiggyBank} className="me-1" /> Tax Credits
+          <div className="mb-3">
+            <label htmlFor="nonRefundableCredits" className="form-label">
+              <FontAwesomeIcon icon={faPiggyBank} className="me-1" /> Non-Refundable Credits
             </label>
             <div className="input-group">
               <span className="input-group-text">$</span>
               <NumericFormat
                 className="form-control"
-                id="credits"
-                name="credits"
-                value={config.credits}
+                id="nonRefundableCredits"
+                name="nonRefundableCredits"
+                value={config.nonRefundableCredits}
                 onValueChange={(values) => {
                   setConfig({
                     ...config,
-                    credits: values.floatValue || 0
+                    nonRefundableCredits: values.floatValue || 0
                   });
                 }}
                 thousandSeparator=","
                 decimalScale={2}
                 allowNegative={false}
-                placeholder="Enter credits"
+                placeholder="Enter non-refundable credits"
                 required
               />
+            </div>
+            <div className="form-text small">
+              Can bring your tax down to zero, but no further. Anything beyond that is lost.
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label htmlFor="refundableCredits" className="form-label">
+              <FontAwesomeIcon icon={faHandHoldingDollar} className="me-1" /> Refundable Credits
+            </label>
+            <div className="input-group">
+              <span className="input-group-text">$</span>
+              <NumericFormat
+                className="form-control"
+                id="refundableCredits"
+                name="refundableCredits"
+                value={config.refundableCredits}
+                onValueChange={(values) => {
+                  setConfig({
+                    ...config,
+                    refundableCredits: values.floatValue || 0
+                  });
+                }}
+                thousandSeparator=","
+                decimalScale={2}
+                allowNegative={false}
+                placeholder="Enter refundable credits"
+                required
+              />
+            </div>
+            <div className="form-text small">
+              Paid to you even when you owe nothing, so these can turn into a refund.
             </div>
           </div>
 

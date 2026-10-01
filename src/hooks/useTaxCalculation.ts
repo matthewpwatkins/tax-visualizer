@@ -5,7 +5,7 @@ import { calculateTax } from '../utils/tax-utils';
 
 interface TaxResults extends TaxCalculationResult {
   effectiveRate: number;
-  credits: number;
+  refundableCredits: number;
 }
 
 interface UseTaxCalculationResult {
@@ -30,13 +30,13 @@ export function useTaxCalculation(): UseTaxCalculationResult {
       // Calculate tax based on config
       const results = calculateTax(config);
 
-      // Calculate effective tax rate (handle division by zero)
+      // Negative when credits outrun the tax owed, which reads as a refund rather than a rate
       const effectiveRate = config.income > 0 ? results.taxAfterCredits / config.income : 0;
 
       setTaxResults({
         ...results,
         effectiveRate,
-        credits: config.credits
+        refundableCredits: config.refundableCredits
       });
 
       // Update the previous request reference

@@ -39,7 +39,8 @@ describe('calculateTax', () => {
     income: 0,
     filingStatus: FilingStatus.SINGLE,
     deductions: 0,
-    credits: 0,
+    nonRefundableCredits: 0,
+    refundableCredits: 0,
     year: 2026,
     ...overrides
   });
@@ -78,10 +79,47 @@ describe('calculateTax', () => {
     expect(result.totalTax).toBe(0);
   });
 
-  it('treats credits as non-refundable', () => {
-    const result = calculateTax(request({ income: 50000, credits: 999999 }));
+  it('stops non-refundable credits at zero and reports the wasted remainder', () => {
+    const result = calculateTax(request({ income: 50000, nonRefundableCredits: 999999 }));
     expect(result.totalTax).toBeGreaterThan(0);
     expect(result.taxAfterCredits).toBe(0);
+    expect(result.nonRefundableCreditsApplied).toBeCloseTo(result.totalTax, 6);
+    expect(result.nonRefundableCreditsUnused).toBeCloseTo(999999 - result.totalTax, 6);
+  });
+
+  it('pays out refundable credits past zero as a refund', () => {
+    const result = calculateTax(request({ income: 50000, refundableCredits: 999999 }));
+    expect(result.taxAfterCredits).toBeCloseTo(result.totalTax - 999999, 6);
+    expect(result.taxAfterCredits).toBeLessThan(0);
+  });
+
+  it('spends non-refundable credits before refundable ones, so none are wasted', () => {
+    // 6,320 of tax, 2,000 non-refundable and 8,800 refundable
+    const result = calculateTax(request({
+      income: 89000,
+      filingStatus: FilingStatus.MARRIED_JOINT,
+      deductions: 32200,
+      nonRefundableCredits: 2000,
+      refundableCredits: 8800
+    }));
+    expect(result.totalTax).toBeCloseTo(6320, 2);
+    expect(result.nonRefundableCreditsApplied).toBeCloseTo(2000, 2);
+    expect(result.nonRefundableCreditsUnused).toBe(0);
+    expect(result.taxAfterCredits).toBeCloseTo(-4480, 2);
+  });
+
+  it('refunds the married filer with four children rather than charging them', () => {
+    // 89,000 salary, standard deduction, child credit of 2,200 a head with 1,700 refundable
+    const result = calculateTax(request({
+      income: 89000,
+      filingStatus: FilingStatus.MARRIED_JOINT,
+      deductions: 32200,
+      nonRefundableCredits: 4 * 500,
+      refundableCredits: 4 * 1700
+    }));
+    expect(result.taxableIncome).toBe(56800);
+    expect(result.totalTax).toBeCloseTo(6320, 2);
+    expect(result.taxAfterCredits).toBeCloseTo(-2480, 2);
   });
 
   it('charges nothing on zero income', () => {
@@ -96,7 +134,8 @@ describe('url round trip', () => {
       income: 123456,
       filingStatus: FilingStatus.HEAD_OF_HOUSEHOLD,
       deductions: 1000,
-      credits: 500,
+      nonRefundableCredits: 500,
+      refundableCredits: 250,
       year: 2024
     };
     const restored = getTaxCalculationRequestFromSearchParams(getTaxCalculationRequestSearchParams(config));
@@ -105,6 +144,14 @@ describe('url round trip', () => {
 
   it('returns nothing when the url carries no inputs', () => {
     expect(getTaxCalculationRequestFromSearchParams(new URLSearchParams())).toBeUndefined();
+  });
+
+  it('reads a link shared before credits were split as non-refundable', () => {
+    const restored = getTaxCalculationRequestFromSearchParams(
+      new URLSearchParams({ income: '50000', credits: '1500' })
+    );
+    expect(restored?.nonRefundableCredits).toBe(1500);
+    expect(restored?.refundableCredits).toBe(0);
   });
 
   it('falls back to defaults for unknown filing status and unsupported year', () => {

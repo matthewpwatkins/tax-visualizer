@@ -148,9 +148,11 @@ function App() {
                 bracketCalculations={taxResults.bracketCalculations}
                 taxableIncome={taxResults.taxableIncome}
                 totalTax={taxResults.totalTax}
+                nonRefundableCreditsApplied={taxResults.nonRefundableCreditsApplied}
+                nonRefundableCreditsUnused={taxResults.nonRefundableCreditsUnused}
+                refundableCredits={taxResults.refundableCredits}
                 taxAfterCredits={taxResults.taxAfterCredits}
                 effectiveRate={taxResults.effectiveRate}
-                credits={taxResults.credits}
                 // Pass the share handler to the tax results table
                 onShare={handleShare}
               />

@@ -33,7 +33,8 @@ export const DEMO_TAX_CALCULATION_REQUEST: TaxCalculationRequest = {
   income: 75000,
   filingStatus: FilingStatus.SINGLE,
   deductions: 0,
-  credits: 0,
+  nonRefundableCredits: 0,
+  refundableCredits: 0,
   year: DEFAULT_TAX_YEAR
 };
 
@@ -41,7 +42,8 @@ export const EMPTY_TAX_CALCULATION_REQUEST: TaxCalculationRequest = {
   income: 0,
   filingStatus: FilingStatus.SINGLE,
   deductions: 0,
-  credits: 0,
+  nonRefundableCredits: 0,
+  refundableCredits: 0,
   year: DEFAULT_TAX_YEAR
 };
 

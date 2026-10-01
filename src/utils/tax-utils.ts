@@ -2,14 +2,19 @@ import { FilingStatus } from "../constants/filing-status";
 import { AVAILABLE_TAX_YEARS, DEFAULT_TAX_YEAR, TAX_BRACKETS } from "../constants/tax-constants";
 import { TaxCalculationResult } from "../model/tax-calculation-result";
 import { TaxCalculationRequest } from "../model/tax-calculation-request";
+import { BracketCalculation } from "../model/bracket-calculation";
 
 const SEARCH_PARAM_KEYS = {
   INCOME: 'income',
   FILING_STATUS: 'filingStatus',
   DEDUCTIONS: 'deductions',
-  CREDITS: 'credits',
+  NON_REFUNDABLE_CREDITS: 'nonRefundableCredits',
+  REFUNDABLE_CREDITS: 'refundableCredits',
   YEAR: 'year'
 };
+
+/** Links shared before credits were split carry a single `credits` value, which was non-refundable. */
+const LEGACY_CREDITS_PARAM_KEY = 'credits';
 
 export function getTaxCalculationRequestFromSearchParams(searchParams: URLSearchParams): TaxCalculationRequest | undefined {
   let anySet = false;
@@ -17,7 +22,8 @@ export function getTaxCalculationRequestFromSearchParams(searchParams: URLSearch
     income: 0,
     filingStatus: FilingStatus.SINGLE,
     deductions: 0,
-    credits: 0,
+    nonRefundableCredits: 0,
+    refundableCredits: 0,
     year: DEFAULT_TAX_YEAR
   };
   
@@ -39,9 +45,17 @@ export function getTaxCalculationRequestFromSearchParams(searchParams: URLSearch
     config.deductions = Number(searchParams.get(SEARCH_PARAM_KEYS.DEDUCTIONS));
   }
 
-  if (searchParams.has(SEARCH_PARAM_KEYS.CREDITS)) {
+  if (searchParams.has(SEARCH_PARAM_KEYS.NON_REFUNDABLE_CREDITS)) {
     anySet = true;
-    config.credits = Number(searchParams.get(SEARCH_PARAM_KEYS.CREDITS));
+    config.nonRefundableCredits = Number(searchParams.get(SEARCH_PARAM_KEYS.NON_REFUNDABLE_CREDITS));
+  } else if (searchParams.has(LEGACY_CREDITS_PARAM_KEY)) {
+    anySet = true;
+    config.nonRefundableCredits = Number(searchParams.get(LEGACY_CREDITS_PARAM_KEY));
+  }
+
+  if (searchParams.has(SEARCH_PARAM_KEYS.REFUNDABLE_CREDITS)) {
+    anySet = true;
+    config.refundableCredits = Number(searchParams.get(SEARCH_PARAM_KEYS.REFUNDABLE_CREDITS));
   }
 
   if (searchParams.has(SEARCH_PARAM_KEYS.YEAR)) {
@@ -60,54 +74,49 @@ export function getTaxCalculationRequestSearchParams(taxConfig: TaxCalculationRe
     [SEARCH_PARAM_KEYS.INCOME]: taxConfig.income.toString(),
     [SEARCH_PARAM_KEYS.FILING_STATUS]: taxConfig.filingStatus,
     [SEARCH_PARAM_KEYS.DEDUCTIONS]: taxConfig.deductions.toString(),
-    [SEARCH_PARAM_KEYS.CREDITS]: taxConfig.credits.toString(),
+    [SEARCH_PARAM_KEYS.NON_REFUNDABLE_CREDITS]: taxConfig.nonRefundableCredits.toString(),
+    [SEARCH_PARAM_KEYS.REFUNDABLE_CREDITS]: taxConfig.refundableCredits.toString(),
     [SEARCH_PARAM_KEYS.YEAR]: taxConfig.year.toString()
   });
 }
 
 export function calculateTax(taxConfig: TaxCalculationRequest): TaxCalculationResult {
-  const result: TaxCalculationResult = {
-    taxableIncome: Math.max(0, taxConfig.income - taxConfig.deductions),
-    bracketCalculations: [],
-    totalTax: 0,
-    taxAfterCredits: 0
-  };
-  
+  const taxableIncome = Math.max(0, taxConfig.income - taxConfig.deductions);
   const brackets = TAX_BRACKETS[taxConfig.year][taxConfig.filingStatus];
+  const bracketCalculations: BracketCalculation[] = [];
   let totalTax = 0;
-  for (let i = 0; i < brackets.length; i++) {
-    const bracket = brackets[i];
+
+  for (const bracket of brackets) {
     const min = bracket.minIncome;
     const max = bracket.maxIncome;
 
-    // Calculate income that falls within this bracket
+    // Only the slice of income that lands between this bracket's edges is taxed at its rate
     let incomeInBracket = 0;
-    if (result.taxableIncome > min) {
+    if (taxableIncome > min) {
       incomeInBracket = max
-        ? Math.min(result.taxableIncome, max) - min
-        : result.taxableIncome - min;
+        ? Math.min(taxableIncome, max) - min
+        : taxableIncome - min;
     }
 
-    // Calculate tax for this bracket
     const taxForBracket = incomeInBracket * bracket.rate;
     totalTax += taxForBracket;
 
-    result.bracketCalculations.push({
-      rate: bracket.rate,
-      min,
-      max,
-      incomeInBracket,
-      taxForBracket
-    });
+    bracketCalculations.push({ rate: bracket.rate, min, max, incomeInBracket, taxForBracket });
   }
 
-  // Apply credits
-  const taxAfterCredits = Math.max(0, totalTax - taxConfig.credits);
+  // Non-refundable credits stop at zero; whatever is left over is forfeited
+  const nonRefundableCreditsApplied = Math.min(totalTax, taxConfig.nonRefundableCredits);
+  const nonRefundableCreditsUnused = taxConfig.nonRefundableCredits - nonRefundableCreditsApplied;
+
+  // Refundable credits keep going past zero, and the remainder comes back as a refund
+  const taxAfterCredits = totalTax - nonRefundableCreditsApplied - taxConfig.refundableCredits;
 
   return {
-    taxableIncome: result.taxableIncome,
-    bracketCalculations: result.bracketCalculations,
+    taxableIncome,
+    bracketCalculations,
     totalTax,
+    nonRefundableCreditsApplied,
+    nonRefundableCreditsUnused,
     taxAfterCredits
   };
 };

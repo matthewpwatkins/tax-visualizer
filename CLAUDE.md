@@ -35,12 +35,12 @@ Each tax year is a JSON file in `src/data/<year>.json` holding brackets and stan
 **To add a tax year:** add `src/data/<year>.json` and register it in `src/model/tax-data/tax-data-init.ts`. Nothing else needs changing — available years, the default year (the highest), and the year dropdown all derive from the registry. The top bracket's `maxIncome` is `null` in JSON and becomes `undefined` in the model, which `calculateTax` treats as unbounded.
 
 ### URL as the only persistence
-The form state round-trips through query params (`income`, `filingStatus`, `deductions`, `credits`, `year`), which is how sharing works. Any new input must be added to both directions in `tax-utils.ts` or it will be silently dropped from shared links. Reset works by clearing the query string and reloading the page.
+The form state round-trips through query params (`income`, `filingStatus`, `deductions`, `nonRefundableCredits`, `refundableCredits`, `year`), which is how sharing works. Any new input must be added to both directions in `tax-utils.ts` or it will be silently dropped from shared links. Links shared before the credit split carry a single `credits` param, which is still read as non-refundable. Reset works by clearing the query string and reloading the page.
 
 ### Conventions
 - Models and interfaces live in `src/model`, enums and derived lookup tables in `src/constants`, pure helpers in `src/utils/tax-utils.ts`.
 - All currency and percent formatting goes through the formatters in `tax-utils.ts`; don't inline `Intl.NumberFormat`.
 - Styling is Bootstrap utility classes in JSX; `App.css` is small and app-specific.
 
-### Current test state
-`src/App.test.tsx` is the unmodified CRA template test and fails against the real UI. The tax calculation logic in `src/utils/tax-utils.ts` has no tests and is the highest-value place to add them.
+### Credits
+Credits are split in two because they behave differently: non-refundable credits stop once tax reaches zero and the remainder is forfeited, while refundable credits keep going and turn into a refund. `calculateTax` spends the non-refundable ones first so none are wasted, and returns a negative `taxAfterCredits` to mean a refund. Any UI reading that field has to handle the negative case.

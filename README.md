@@ -4,7 +4,7 @@
 
 A web application for visualizing your tax burden and how you fill your bracket.
 
-Visit the live application: [tax-visualizer.netlify.app](https://tax-visualizer.netlify.app)
+Visit the live application: [tax-visualizer.watkins.dev](https://tax-visualizer.watkins.dev)
 
 ## Getting Started
 
